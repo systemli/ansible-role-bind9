@@ -1,0 +1,250 @@
+---
+
+- name: install bind9 packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - bind9
+    - dnsutils
+    - haveged
+
+- name: copy bind9 defaults file
+  template:
+    src: bind/default.j2
+    dest: /etc/default/bind9
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart bind9
+
+- name: configure bind9 named.conf files
+  template:
+    src: bind/{{ item }}.j2
+    dest: /etc/bind/{{ item }}
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0644
+  with_items:
+    - named.conf.local
+    - named.conf.options
+  notify:
+    - reload bind9
+
+- name: check validity of named.conf
+  command: named-checkconf
+  register: bind9_reg_named_checkconf
+  become: true
+  become_user: "{{ bind9_user }}"
+  changed_when: False
+
+- name: create bind9 directory for master zones
+  file:
+    path: /etc/bind/zones
+    state: directory
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 02775
+  when: bind9_authoritative|d()
+
+- name: install bind9 rndc key
+  template:
+    src: bind/rndc.key.j2
+    dest: /etc/bind/rndc.key
+    owner: "{{ bind9_user }}"
+    group: "{{ bind9_group }}"
+    mode: 0640
+  when: bind9_rndc_key|d()
+  notify:
+    - restart bind9
+  tags:
+    - role:bind9:rndc_key
+
+- name: create bind9 directory for keys
+  file:
+    path: /etc/bind/keys
+    state: directory
+    owner: "{{ bind9_user }}"
+    group: "{{ bind9_group }}"
+    mode: 02750
+  when: bind9_authoritative|d()
+  tags:
+    - role:bind9:ddns
+    - role:bind9:dnssec
+
+# TODO: DDNS: move keys into vault file
+- name: copy over DDNS keys for zones with update_keyfile
+  copy:
+    src: bind/zones/{{ item.update_keyfile }}.key
+    dest: /etc/bind/keys/{{ item.update_keyfile }}.key
+    owner: "{{ bind9_user }}"
+    group: "{{ bind9_group }}"
+    mode: 0644
+  with_items:
+    - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
+  when:
+    - bind9_authoritative|d()
+    - item.type|d(bind9_zone_type) == 'master'
+    - item.update_keyfile|d()
+
+- name: copy over DDNS private keys for zones with update_keyfile
+  copy:
+    src: bind/zones/{{ item.update_keyfile }}.private
+    dest: /etc/bind/keys/{{ item.update_keyfile }}.private
+    owner: "{{ bind9_user }}"
+    group: "{{ bind9_group }}"
+    mode: 0600
+  with_items:
+    - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
+  when:
+    - bind9_authoritative|d()
+    - item.type|d(bind9_zone_type) == 'master'
+    - item.update_keyfile|d()
+
+# TODO: DNSSEC: implement key rollover
+- name: determine if DNSSEC keys for zones already exist
+  find:
+    paths: /etc/bind/keys
+    patterns: "K{{ item.name }}.+008+*"
+  register: bind9_reg_dnssec_keys_tmp
+  with_items:
+    - "{{ bind9_zones_dynamic }} + {{ bind9_zones_static }}"
+  when:
+    - bind9_authoritative|d()
+    - bind9_dnssec|d() or item.dnssec|d()
+    - not item.nodnssec|d()
+  tags:
+    - role:bind9:dnssec
+
+# Filter out all skipped results (e.g. if item.nodnssec is set)
+- set_fact:
+    bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results|selectattr('skipped', 'undefined')|list }}"
+
+- name: generate bind9 key signing keys for zones
+  command: dnssec-keygen -a RSASHA256 -b 4096 -n ZONE -f KSK {{ item.item.name }}
+  args:
+    chdir: /etc/bind/keys
+  register: bind9_reg_keygen_ksk
+  become: true
+  become_user: "{{ bind9_user }}"
+  with_items: "{{ bind9_reg_dnssec_keys }}"
+  when:
+    - bind9_authoritative|d()
+    - bind9_dnssec|d()
+    - item.matched < 2
+  notify:
+    - reload bind9
+  tags:
+    - role:bind9:dnssec
+ 
+- name: generate bind9 zone signing keys for zones
+  command: dnssec-keygen -a RSASHA256 -b 2048 -n ZONE {{ item.item.name }}
+  args:
+    chdir: /etc/bind/keys
+  register: bind9_reg_keygen_zsk
+  become: true
+  become_user: "{{ bind9_user }}"
+  with_items: "{{ bind9_reg_dnssec_keys }}"
+  when:
+    - bind9_authoritative|d()
+    - bind9_dnssec|d()
+    - item.matched < 2
+  notify:
+    - reload bind9
+  tags:
+    - role:bind9:dnssec
+
+- name: read in zone signing keys from key files (DNSKEY)
+  command: "grep 'IN DNSKEY' /etc/bind/keys/{{ item.stdout }}.key"
+  register: bind9_reg_zsk
+  changed_when: false
+  with_items: "{{ bind9_reg_keygen_zsk.results }}"
+  when:
+    - bind9_authoritative|d()
+    - bind9_dnssec|d()
+    - item.changed|d()
+  tags:
+    - role:bind9:dnssec
+
+- name: generate DS records from zone signing keys
+  command: "dnssec-dsfromkey -2 /etc/bind/keys/{{ item.stdout }}.key"
+  register: bind9_reg_zsk_ds
+  changed_when: false
+  with_items: "{{ bind9_reg_keygen_zsk.results }}"
+  when:
+    - bind9_authoritative|d()
+    - bind9_dnssec|d()
+    - item.changed|d()
+  tags:
+    - role:bind9:dnssec
+
+- name: send ZSK in DNSSEC and DS format over XMPP
+  jabber:
+    user: "{{ bind9_dnssec_notify_xmpp_user }}"
+    password: "{{ bind9_dnssec_notify_xmpp_password }}"
+    to: "{{ bind9_dnssec_notify_xmpp_rcpt }}"
+    msg: 'New zone signing key (ZSK) for zone "{{ item.0.item.item.item.name }}" needs to be inserted/updated at registrar (use the format that the registrar demands):
+
+{{ item.0.stdout }}
+
+{{ item.1.stdout }}'
+  with_together:
+    - "{{ bind9_reg_zsk.results }}"
+    - "{{ bind9_reg_zsk_ds.results }}"
+  delegate_to: localhost
+  ignore_errors: "{{ ansible_check_mode }}"
+  when:
+    - bind9_authoritative
+    - bind9_dnssec|d()
+    - item.0.item.changed|d()
+    - bind9_dnssec_notify_xmpp
+  tags:
+    - role:bind9:dnssec
+
+- name: create dynamic bind9 zone files
+  template:
+    src: bind/zones/db.template.j2
+    dest: /etc/bind/zones/db.{{ item.name }}
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0644
+  with_items: "{{ bind9_zones_dynamic }}"
+  when:
+    - bind9_authoritative|d()
+    - item.type|d(bind9_zone_type) == 'master'
+  notify:
+    - reload bind9
+  tags:
+    - role:bind9:zones
+
+- name: install static bind9 zone files
+  copy:
+    src: bind/zones/db.{{ item.name }}
+    dest: /etc/bind/zones/db.{{ item.name }}
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0644
+    force: "{{ item.force_update|d('yes') }}"
+  with_items: "{{ bind9_zones_static }}"
+  when:
+    - bind9_authoritative|d()
+    - item.type|d(bind9_zone_type) == 'master'
+  notify:
+    - reload bind9
+  tags:
+    - role:bind9:zones
+
+- name: check validity of zone files
+  command: named-checkzone {{ item.name }} /etc/bind/zones/db.{{ item.name }}
+  register: bind9_reg_named_checkzone
+  become: true
+  become_user: "{{ bind9_user }}"
+  with_items:
+    - "{{ bind9_zones_dynamic }}"
+    - "{{ bind9_zones_static }}"
+  when: item.type|d(bind9_zone_type) == 'master'
+  changed_when: False
+
+- import_tasks: monit.yml
+  when: bind9_monit_enabled|d()

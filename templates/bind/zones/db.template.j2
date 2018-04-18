@@ -1,0 +1,27 @@
+$ORIGIN .
+$TTL 86400      ; 1 day
+{{ zone.name }}		IN SOA	{{ zone.primary|d(zone.rec_ns.0) }}. {{ zone.admin|d(bind9_admin) }}. (
+				{{ zone.serial }} ; serial
+				{{ zone.refresh|d('86400') }}      ; refresh (1 day)
+				{{ zone.retry|d('3600') }}       ; retry (1 hour)
+				{{ zone.expire|d('2419200') }}    ; expire (4 weeks)
+				{{ zone.minimum|d('86400') }}      ; minimum (1 day)
+				)
+{% for ns in zone.rec_ns %}
+			NS	{{ ns }}.
+{% endfor %}
+{% if zone.rec_root_a|d() %}
+			A	zone.rec.root_a
+{% endif %}
+{% if zone.rec_root_aaa|d() %}
+			AAAA	zone.rec.root_aaaa
+{% endif %}
+{% if zone.rec_root_mx|d() %}
+{%   for mx in zone.rec_root_mx %}
+			MX	{{ mx.value|d('10') }} {{ mx.key }}.
+{%   endfor %}
+{% endif %}
+{% if zone.rec_root_txt|d() %}
+			TXT	"{{ zone.rec_root_txt}}"
+{% endif %}
+$ORIGIN {{ zone.name }}.
