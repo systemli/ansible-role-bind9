@@ -1,0 +1,59 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+{% if bind9_masters|d() %}
+{%   for master in bind9_masters %}
+masters {{ master.name }} {
+{%     for addr in master.addresses %}
+    {{ addr }};
+{%     endfor %}
+};
+{%   endfor %}
+{% endif %}
+
+// The following zones are managed by this DNS Server //
+{% for zone in (bind9_zones_static + bind9_zones_dynamic)|sort %}
+{% set zone_type = zone.type|d(bind9_zone_type|d('master')) %}
+zone "{{ zone.name }}" {
+    type {{ zone_type }};
+{%   if zone_type == 'master' %}
+    file "/etc/bind/zones/db.{{ zone.name }}";
+{%     if bind9_notify_explicit|d() %}
+    notify explicit;
+{%     elif zone.notify|d(true) %}
+    notify yes;
+{%     endif %}
+{%     if (bind9_dnssec|d() or zone.dnssec|d()) and not zone.nodnssec|d() %}
+    auto-dnssec maintain;
+    inline-signing yes;
+{%     endif %}
+{%     if zone.update_policy_grant|d() %}
+    update-policy {
+        grant {{ zone.name }}_ddns_update {{ zone.update_policy_grant }};
+    };
+{%     endif %}
+{%   elif zone_type == 'slave' %}
+    file "/var/lib/bind/db.{{ zone.name }}";
+{%     if zone.masters|d() or bind9_masters|d() %}
+    notify no;
+    masters {
+{%       if bind9_masters|d() %}
+{%         for master in bind9_masters %}
+        {{ master.name }};
+{%         endfor %}
+{%       endif %}
+{%       if zone.masters|d() %}
+{%         for master in zone.masters %}
+        {{ master }};
+{%         endfor %}
+{%       endif %}
+    };
+{%     endif %}
+{%   endif %}
+};
+{% endfor %}
