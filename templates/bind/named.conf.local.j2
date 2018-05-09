@@ -42,14 +42,13 @@ zone "{{ zone.name }}" {
 {%     if zone.masters|d() or bind9_masters|d() %}
     notify no;
     masters {
-{%       if bind9_masters|d() %}
-{%         for master in bind9_masters %}
-        {{ master.name }};
-{%         endfor %}
-{%       endif %}
 {%       if zone.masters|d() %}
 {%         for master in zone.masters %}
         {{ master }};
+{%         endfor %}
+{%       elif bind9_masters|d() %}
+{%         for master in bind9_masters %}
+        {{ master.name }};
 {%         endfor %}
 {%       endif %}
     };
