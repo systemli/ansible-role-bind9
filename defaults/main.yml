@@ -46,6 +46,12 @@ bind9_rndc_algorithm: hmac-md5
 #    addresses:
 #      - 1.2.3.4
 
+# Primaries for particular zones (if configured as secondary)
+#bind9_masters_extra:
+#  - name: ns-primary
+#    addresses:
+#      - 1.2.3.4
+
 # Global secondaries for all zones (if configured as primary)
 #bind9_slaves:
 #  - 1.2.3.4

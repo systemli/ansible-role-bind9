@@ -15,6 +15,15 @@ masters {{ master.name }} {
 };
 {%   endfor %}
 {% endif %}
+{% if bind9_masters_extra|d() %}
+{%   for master in bind9_masters_extra %}
+masters {{ master.name }} {
+{%     for addr in master.addresses %}
+    {{ addr }};
+{%     endfor %}
+};
+{%   endfor %}
+{% endif %}
 
 // The following zones are managed by this DNS Server //
 {% for zone in (bind9_zones_static + bind9_zones_dynamic)|sort %}
