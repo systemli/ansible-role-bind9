@@ -1,3 +1,4 @@
+{% set zone=item %}
 $ORIGIN .
 $TTL 86400      ; 1 day
 {{ zone.name }}		IN SOA	{{ zone.primary|d(zone.rec_ns.0) }}. {{ zone.admin|d(bind9_admin) }}. (
