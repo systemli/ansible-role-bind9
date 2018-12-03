@@ -2,4 +2,4 @@
 RESOLVCONF=no
 
 # startup options for the server
-OPTIONS="-u bind{{ bind9_ipv6|d()|ternary('', ' -4') }}"
+OPTIONS="-u bind{{ bind9_ipv6|default()|ternary('', ' -4') }}"

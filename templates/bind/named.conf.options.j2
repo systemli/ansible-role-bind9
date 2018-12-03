@@ -18,20 +18,20 @@ options {
 	// If BIND logs error messages about the root key being expired,
 	// you will need to update your keys.  See https://www.isc.org/bind-keys
 	//========================================================================
-	dnssec-validation {{ bind9_recusor|d()|ternary('auto', 'yes') }};
+	dnssec-validation {{ bind9_recusor|default()|ternary('auto', 'yes') }};
 
 	auth-nxdomain no;    # conform to RFC1035
 	listen-on-v6 { any; };
 
-	recursion {{ bind9_recursor|d()|ternary('yes', 'no') }};
-	allow-recursion { {{ bind9_recursor|d()|ternary('our_networks', 'none') }}; };
+	recursion {{ bind9_recursor|default()|ternary('yes', 'no') }};
+	allow-recursion { {{ bind9_recursor|default()|ternary('our_networks', 'none') }}; };
 
-	allow-query { {% if bind9_hidden_master|d() %}our_neighbors{% elif bind9_authoritative|d() %}any{% else %}our_networks{% endif %}; };
-{% if bind9_authoritative|d() %}
+	allow-query { {% if bind9_hidden_master|default() %}our_neighbors{% elif bind9_authoritative|default() %}any{% else %}our_networks{% endif %}; };
+{% if bind9_authoritative|default() %}
 
 	allow-transfer { our_neighbors; };
 {% endif %}
-{% if bind9_slaves|d() %}
+{% if bind9_slaves|default() %}
 
 	// List of secondary nameservers to notify for every zone update
 	also-notify {
@@ -40,27 +40,27 @@ options {
 {%   endfor %}
 	};
 {% endif %}
-{% if bind9_notify_explicit|d() %}
+{% if bind9_notify_explicit|default() %}
 
 	// Notify only nameservers from also-notify, not from NS RRs in zones
 	notify explicit;
 {% endif %}
-{% if bind9_dnssec|d() %}
+{% if bind9_dnssec|default() %}
 
 	// Look here for DNSSEC keys
 	key-directory "/etc/bind/keys";
 {% endif %}
 };
 
-{% if bind9_zones_static|selectattr('update_keyfile','defined')|list|d() %}
-{%   for zone in bind9_zones_static|selectattr('update_keyfile','defined')|list|d([]) %}
-{%     if zone_type|d(bind9_zone_type|d('master')) == 'master' %}
+{% if bind9_zones_static|selectattr('update_keyfile','defined')|list|default() %}
+{%   for zone in bind9_zones_static|selectattr('update_keyfile','defined')|list|default([]) %}
+{%     if zone_type|default(bind9_zone_type|default('master')) == 'master' %}
 {%       if loop.first %}
 // The following keys are used for dynamic DNS updates
 {%       endif %}
 key "{{ zone.name }}_ddns_update" {
-	algorithm {{ zone.update_key_algorithm|d('hmac-sha512') }};
-	secret "{{ zone.update_key_secret|d() }}";
+	algorithm {{ zone.update_key_algorithm|default('hmac-sha512') }};
+	secret "{{ zone.update_key_secret|default() }}";
 };
 {%     endif %}
 {%   endfor %}
@@ -68,7 +68,7 @@ key "{{ zone.name }}_ddns_update" {
 
 acl our_networks {
 	// Permitted for queries
-{% if bind9_our_networks|d() %}
+{% if bind9_our_networks|default() %}
 {%   for network in bind9_our_networks %}
 	{{ network }};
 {%   endfor %}
@@ -77,7 +77,7 @@ acl our_networks {
 
 acl our_neighbors {
 	// Permitted for transfers
-{% if bind9_our_neighbors|d() %}
+{% if bind9_our_neighbors|default() %}
 {%   for network in bind9_our_neighbors %}
 	{{ network }};
 {%   endfor %}
