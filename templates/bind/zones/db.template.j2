@@ -1,27 +1,62 @@
+{# Structure of a yaml dynamic zone variable:
+- name: example.org
+  serial: YYYYMMDDNN
+  admin: postmaster.example.org
+  ns_records:
+    - ns1.example.org.
+    - ns2.example.org.
+  a_records:
+    - 192.168.0.1
+  aaaa_records:
+    - fc00::
+  mx_records:
+    - priority: 10
+      name: mx1.example.org.
+  rrs:
+    - label: subdomain
+      type: A|CNAME|...
+      rdata: IP|domain
+#}{% set zone=item %}
+;; {{ ansible_managed }}
 $ORIGIN .
-$TTL 86400      ; 1 day
-{{ zone.name }}		IN SOA	{{ zone.primary|d(zone.rec_ns.0) }}. {{ zone.admin|d(bind9_admin) }}. (
-				{{ zone.serial }} ; serial
-				{{ zone.refresh|d('86400') }}      ; refresh (1 day)
-				{{ zone.retry|d('3600') }}       ; retry (1 hour)
-				{{ zone.expire|d('2419200') }}    ; expire (4 weeks)
-				{{ zone.minimum|d('86400') }}      ; minimum (1 day)
-				)
-{% for ns in zone.rec_ns %}
-			NS	{{ ns }}.
+$TTL {{ zone.negative_ttl|default('3600') }}   ; 1 hour
+{# We first deal in detail with SOA and NS, which is requiered, and root zone registers
+   Empezamos detallando el SOA y NS, que son indispensables, y registros de raíz de zona #}
+{{ zone.name }} IN  SOA     {{ zone.primary|default(zone.ns_records.0) }}. {{ zone.admin|default(bind9_admin) }}. (
+                {{ zone.serial }} ; serial
+                {{ zone.refresh|default('14400') }} ; refresh (3 hours)
+                {{ zone.retry|default('3600') }} ; retry (1 hour)
+                {{ zone.expire|default('604800') }} ; expire (1 week)
+                {{ zone.minimum|default('10800') }} ; minimum (3 hours)
+                )
+{% for ns in zone.ns_records %}
+                    NS      {{ ns }}
 {% endfor %}
-{% if zone.rec_root_a|d() %}
-			A	zone.rec.root_a
-{% endif %}
-{% if zone.rec_root_aaa|d() %}
-			AAAA	zone.rec.root_aaaa
-{% endif %}
-{% if zone.rec_root_mx|d() %}
-{%   for mx in zone.rec_root_mx %}
-			MX	{{ mx.value|d('10') }} {{ mx.key }}.
+{% if zone.a_records is defined %}
+{%   for a in zone.a_records %}
+                    A       {{ a }}
 {%   endfor %}
 {% endif %}
-{% if zone.rec_root_txt|d() %}
-			TXT	"{{ zone.rec_root_txt}}"
+{% if zone.aaaa_records is defined %}
+{%   for aaaa in zone.aaaa_records %}
+                    AAAA    {{ aaaa }}
+{%   endfor %}
+{% endif %}
+{% if zone.mx_records is defined %}
+{%   for mx in zone.mx_records %}
+                    MX      {{ mx.priority|default('10') }} {{ mx.name }}.
+{%   endfor %}
+{% endif %}
+{% if zone.txt_records is defined %}
+{%   for txt in zone.txt_records %}
+                    TXT     "{{ txt }}"
+{%   endfor %}
 {% endif %}
 $ORIGIN {{ zone.name }}.
+
+{# Then a generic yaml following basic RR structure (omiting 'class'):
+   Seguimos con un yaml conforme a la estructura básica de un RR (omitiendo 'class'):
+   http://www.zytrax.com/books/dns/ch8/#generic #}
+{% for resource in zone.rrs %}
+{{ resource.label }} {{ resource.ttl|default() }} {{ resource.type }} {{ resource.rdata }}
+{% endfor %}
