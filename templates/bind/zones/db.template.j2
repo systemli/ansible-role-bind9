@@ -57,6 +57,7 @@ $ORIGIN {{ zone.name }}.
 {# Then a generic yaml following basic RR structure (omiting 'class'):
    Seguimos con un yaml conforme a la estructura básica de un RR (omitiendo 'class'):
    http://www.zytrax.com/books/dns/ch8/#generic #}
+
 {% for resource in zone.rrs %}
 {{ resource.label }} {{ resource.ttl|default() }} {{ resource.type }} {{ resource.rdata }}
 {% endfor %}
