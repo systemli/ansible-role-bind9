@@ -1,61 +1,63 @@
-{# Structure of a yaml dynamic zone variable: 
-- name: myzone.org 
-  stable: true
+{# Structure of a yaml dynamic zone variable:
+- name: example.org
   serial: YYYYMMDDNN
-  admin: postmaster.myzone.org
-  rec_ns:
-  - myns.myzone.org 
-  - otherns.zone.org    ## without . at the end
-  RR:
-  - {label:server, type: A|CNAME|..., rdata: IP|domain}
+  admin: postmaster.example.org
+  ns_records:
+    - ns1.example.org.
+    - ns2.example.org.
+  a_records:
+    - 192.168.0.1
+  aaaa_records:
+    - fc00::
+  mx_records:
+    - priority: 10
+      name: mx1.example.org.
+  rrs:
+    - label: subdomain
+      type: A|CNAME|...
+      rdata: IP|domain
 #}{% set zone=item %}
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Archivo de zona: {{ zone.name }}
-;; {{ ansible_managed       }}                  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-$ORIGIN {{ zone.name }}.
-{% if zone.stable %} {% set min_def='2D' %}
-$TTL 1D      ; 86400s, 1 day
-{% else %}{% set min_def='10M' %}
-$TTL 10M      ; 600s, 10 min
-{% endif %}
-
+;; {{ ansible_managed }}
+$ORIGIN .
+$TTL {{ zone.negative_ttl|default('3600') }}   ; 1 hour
 {# We first deal in detail with SOA and NS, which is requiered, and root zone registers
    Empezamos detallando el SOA y NS, que son indispensables, y registros de raíz de zona #}
-
-@	IN	SOA		{{ zone.primary|d(zone.rec_ns.0) }}. {{ zone.admin|d(bind9_admin) }}. (
-				{{ zone.serial }} ; serial
-				{{ zone.refresh|d('1D') }}      ; refresh (1 day)
-				{{ zone.retry|d('2H') }}       ; retry (1 hour)
-				{{ zone.expire|d('1000H') }}    ; expire (1000 hours, +/- 10 weeks)
-				{{ zone.minimum|d(min_def) }}      ; minimum (2 days when stable, otherwhise 10 min)
-				)
-
-{% for ns in zone.rec_ns %}
-@	IN	NS	{{ ns }}.
+{{ zone.name }} IN  SOA     {{ zone.primary|default(zone.ns_records.0) }}. {{ zone.admin|default(bind9_admin) }}. (
+                {{ zone.serial }} ; serial
+                {{ zone.refresh|default('14400') }} ; refresh (3 hours)
+                {{ zone.retry|default('3600') }} ; retry (1 hour)
+                {{ zone.expire|default('604800') }} ; expire (1 week)
+                {{ zone.minimum|default('10800') }} ; minimum (3 hours)
+                )
+{% for ns in zone.ns_records %}
+                    NS      {{ ns }}
 {% endfor %}
-{% if zone.rec_root_a|d() %}
-@	IN	A	zone.rec.root_a
-{% endif %}
-{% if zone.rec_root_aaa|d() %}
-@	IN	AAAA	zone.rec.root_aaaa
-{% endif %}
-{% if zone.rec_root_mx|d() %}
-{%   for mx in zone.rec_root_mx %}
-@	IN	MX	{{ mx.value|d('10') }} {{ mx.key }}.
+{% if zone.a_records is defined %}
+{%   for a in zone.a_records %}
+                    A       {{ a }}
 {%   endfor %}
 {% endif %}
-{% if zone.rec_root_txt|d() %}
-@	IN	TXT	"{{ zone.rec_root_txt}}"
+{% if zone.aaaa_records is defined %}
+{%   for aaaa in zone.aaaa_records %}
+                    AAAA    {{ aaaa }}
+{%   endfor %}
 {% endif %}
+{% if zone.mx_records is defined %}
+{%   for mx in zone.mx_records %}
+                    MX      {{ mx.priority|default('10') }} {{ mx.name }}.
+{%   endfor %}
+{% endif %}
+{% if zone.txt_records is defined %}
+{%   for txt in zone.txt_records %}
+                    TXT     "{{ txt }}"
+{%   endfor %}
+{% endif %}
+$ORIGIN {{ zone.name }}.
 
 {# Then a generic yaml following basic RR structure (omiting 'class'):
    Seguimos con un yaml conforme a la estructura básica de un RR (omitiendo 'class'):
    http://www.zytrax.com/books/dns/ch8/#generic #}
-{% for resource in zone.RR %}
-{{resource.label}}	{{resource.ttl|d()}}	IN	{{resource.type}}	{{resource.rdata}}
+
+{% for resource in zone.rrs %}
+{{ resource.label }} {{ resource.ttl|default() }} {{ resource.type }} {{ resource.rdata }}
 {% endfor %}
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Fin archivo de zona: {{ zone.name }}
-;; {{ansible_managed}}                  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

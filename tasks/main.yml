@@ -46,7 +46,7 @@
     owner: root
     group: "{{ bind9_group }}"
     mode: 02775
-  when: bind9_authoritative|d()
+  when: bind9_authoritative|default()
 
 - name: install bind9 rndc key
   template:
@@ -55,7 +55,7 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: 0640
-  when: bind9_rndc_key|d()
+  when: bind9_rndc_key|default()
   notify:
     - restart bind9
   tags:
@@ -68,7 +68,7 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: 02750
-  when: bind9_authoritative|d()
+  when: bind9_authoritative|default()
   tags:
     - role:bind9:ddns
     - role:bind9:dnssec
@@ -84,9 +84,9 @@
   with_items:
     - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|d()
-    - item.type|d(bind9_zone_type) == 'master'
-    - item.update_keyfile|d()
+    - bind9_authoritative|default()
+    - item.type|default(bind9_zone_type) == 'master'
+    - item.update_keyfile|default()
 
 - name: copy over DDNS private keys for zones with update_keyfile
   copy:
@@ -98,9 +98,9 @@
   with_items:
     - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|d()
-    - item.type|d(bind9_zone_type) == 'master'
-    - item.update_keyfile|d()
+    - bind9_authoritative|default()
+    - item.type|default(bind9_zone_type) == 'master'
+    - item.update_keyfile|default()
 
 # TODO: DNSSEC: implement key rollover
 - name: determine if DNSSEC keys for zones already exist
@@ -111,9 +111,9 @@
   with_items:
     - "{{ bind9_zones_dynamic }} + {{ bind9_zones_static }}"
   when:
-    - bind9_authoritative|d()
-    - bind9_dnssec|d() or item.dnssec|d()
-    - not item.nodnssec|d()
+    - bind9_authoritative|default()
+    - bind9_dnssec|default() or item.dnssec|default()
+    - not item.nodnssec|default()
   tags:
     - role:bind9:dnssec
 
@@ -130,8 +130,8 @@
   become_user: "{{ bind9_user }}"
   with_items: "{{ bind9_reg_dnssec_keys }}"
   when:
-    - bind9_authoritative|d()
-    - bind9_dnssec|d()
+    - bind9_authoritative|default()
+    - bind9_dnssec|default()
     - item.matched < 2
   notify:
     - reload bind9
@@ -147,8 +147,8 @@
   become_user: "{{ bind9_user }}"
   with_items: "{{ bind9_reg_dnssec_keys }}"
   when:
-    - bind9_authoritative|d()
-    - bind9_dnssec|d()
+    - bind9_authoritative|default()
+    - bind9_dnssec|default()
     - item.matched < 2
   notify:
     - reload bind9
@@ -161,9 +161,9 @@
   changed_when: false
   with_items: "{{ bind9_reg_keygen_zsk.results }}"
   when:
-    - bind9_authoritative|d()
-    - bind9_dnssec|d()
-    - item.changed|d()
+    - bind9_authoritative|default()
+    - bind9_dnssec|default()
+    - item.changed|default()
   tags:
     - role:bind9:dnssec
 
@@ -173,9 +173,9 @@
   changed_when: false
   with_items: "{{ bind9_reg_keygen_zsk.results }}"
   when:
-    - bind9_authoritative|d()
-    - bind9_dnssec|d()
-    - item.changed|d()
+    - bind9_authoritative|default()
+    - bind9_dnssec|default()
+    - item.changed|default()
   tags:
     - role:bind9:dnssec
 
@@ -196,8 +196,8 @@
   ignore_errors: "{{ ansible_check_mode }}"
   when:
     - bind9_authoritative
-    - bind9_dnssec|d()
-    - item.0.item.changed|d()
+    - bind9_dnssec|default()
+    - item.0.item.changed|default()
     - bind9_dnssec_notify_xmpp
   tags:
     - role:bind9:dnssec
@@ -211,8 +211,8 @@
     mode: 0644
   with_items: "{{ bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|d()
-    - item.type|d(bind9_zone_type) == 'master'
+    - bind9_authoritative|default()
+    - item.type|default(bind9_zone_type) == 'master'
   notify:
     - reload bind9
   tags:
@@ -225,11 +225,11 @@
     owner: root
     group: "{{ bind9_group }}"
     mode: 0644
-    force: "{{ item.force_update|d('yes') }}"
+    force: "{{ item.force_update|default('yes') }}"
   with_items: "{{ bind9_zones_static }}"
   when:
-    - bind9_authoritative|d()
-    - item.type|d(bind9_zone_type) == 'master'
+    - bind9_authoritative|default()
+    - item.type|default(bind9_zone_type) == 'master'
   notify:
     - reload bind9
   tags:
@@ -243,8 +243,8 @@
   with_items:
     - "{{ bind9_zones_dynamic }}"
     - "{{ bind9_zones_static }}"
-  when: item.type|d(bind9_zone_type) == 'master'
+  when: item.type|default(bind9_zone_type) == 'master'
   changed_when: False
 
 - import_tasks: monit.yml
-  when: bind9_monit_enabled|d()
+  when: bind9_monit_enabled|default()

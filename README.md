@@ -12,7 +12,7 @@ Features:
   * automatic zone DNSSEC configuration
   * support t osend DNSKEY/DS formatted output over XMPP
 * Support for hidden primary and authoritative secondary configuration
-* Preliminary support for dynamic creation of zone files from variables
+* Basic support for dynamic creation of zone files from variables
 
 ## Dependencies
 
