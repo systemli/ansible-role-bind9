@@ -57,10 +57,15 @@ tramp
 *_archive
 
 # Testing files
-.molecule/
 .cache
 .molecule
 .tox
 .vagrant
 molecule/*/.molecule
 tests/__pycache__
+
+# Git files
+.gitconfig
+
+# Ansible files
+meta/.galaxy_install_info
