@@ -88,6 +88,20 @@ bind9_dnssec_notify_xmpp_rcpt: admin@jabber.example.org
 bind9_monit_enabled: no
 ```
 
+Testing & Development
+---------------------
+
+Tests
+-----
+
+For developing and testing the role we use Travis CI, Molecule and Vagrant. On the local environment you can easily test the role with
+
+Run local tests with:
+
+```
+molecule test 
+```
+
 ## License
 
 This Ansible role is licensed under the GNU GPLv3.

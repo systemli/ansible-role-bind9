@@ -11,9 +11,9 @@ galaxy_info:
     - nameserver
     - recursor
   platforms:
-  - name: Debian
-    versions:
-      - jessie
-      - stretch
+    - name: Debian
+      versions:
+        - jessie
+        - stretch
   notifications:
     webhooks: https://galaxy.ansible.com/api/v1/notifications/
