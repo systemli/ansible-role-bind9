@@ -38,6 +38,8 @@
   become: true
   become_user: "{{ bind9_user }}"
   changed_when: False
+  vars:
+    ansible_ssh_pipelining: True
 
 - name: create bind9 directory for master zones
   file:
@@ -137,7 +139,7 @@
     - reload bind9
   tags:
     - role:bind9:dnssec
- 
+
 - name: generate bind9 zone signing keys for zones
   command: dnssec-keygen -a RSASHA256 -b 2048 -n ZONE {{ item.item.name }}
   args:
@@ -245,6 +247,8 @@
     - "{{ bind9_zones_static }}"
   when: item.type|default(bind9_zone_type) == 'master'
   changed_when: False
+  vars:
+    ansible_ssh_pipelining: True
 
 - import_tasks: monit.yml
   when: bind9_monit_enabled|default()
