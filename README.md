@@ -86,6 +86,11 @@ bind9_dnssec_notify_xmpp_rcpt: admin@jabber.example.org
 
 # Install monit file for bind9 named
 bind9_monit_enabled: no
+
+bind9_packages:
+    - bind9
+    - dnsutils
+    - haveged
 ```
 
 Testing & Development

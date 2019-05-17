@@ -2,12 +2,8 @@
 
 - name: install bind9 packages
   apt:
-    pkg: "{{ item }}"
+    pkg: "{{ bind9_packages }}"
     state: present
-  with_items:
-    - bind9
-    - dnsutils
-    - haveged
 
 - name: copy bind9 defaults file
   template:
