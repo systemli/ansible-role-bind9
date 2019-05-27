@@ -37,7 +37,7 @@ zone "{{ zone.name }}" {
 {%     elif zone.notify|default(true) %}
     notify yes;
 {%     endif %}
-{%     if (bind9_dnssec|default() or zone.dnssec|default()) and not zone.nodnssec|default() %}
+{%     if (bind9_dnssec|default() or zone.dnssec|default()) and zone.dnssec|default(True) %}
     auto-dnssec maintain;
     inline-signing yes;
 {%     endif %}
