@@ -111,11 +111,11 @@
   when:
     - bind9_authoritative|default()
     - bind9_dnssec|default() or item.dnssec|default()
-    - not item.nodnssec|default()
+    - item.dnssec|default(True)
   tags:
     - role:bind9:dnssec
 
-# Filter out all skipped results (e.g. if item.nodnssec is set)
+# Filter out all skipped results (e.g. if item.dnssec is set to False)
 - set_fact:
     bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results|selectattr('skipped', 'undefined')|list }}"
 
