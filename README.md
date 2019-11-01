@@ -83,6 +83,7 @@ bind9_dnssec_notify_xmpp: no
 bind9_dnssec_notify_xmpp_user: user@jabber.example.org
 bind9_dnssec_notify_xmpp_password: insecure
 bind9_dnssec_notify_xmpp_rcpt: admin@jabber.example.org
+bind9_dnssec_notify_xmpp_host: "{{ ansible_jabber_host|default('localhost') }}"
 
 # Install monit file for bind9 named
 bind9_monit_enabled: no

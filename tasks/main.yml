@@ -190,7 +190,7 @@
   with_together:
     - "{{ bind9_reg_zsk.results }}"
     - "{{ bind9_reg_zsk_ds.results }}"
-  delegate_to: localhost
+  delegate_to: "{{ bind9_dnssec_notify_xmpp_host }}"
   ignore_errors: "{{ ansible_check_mode }}"
   when:
     - bind9_authoritative
