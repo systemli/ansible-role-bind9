@@ -20,7 +20,7 @@ For the XMPP notification feature, `python-xmpp` needs to be installed.
 
 ## Role varibles
 
-```
+```yml
 # User and group for bind
 bind9_user: bind
 bind9_group: bind
@@ -92,6 +92,13 @@ bind9_packages:
     - bind9
     - dnsutils
     - haveged
+
+# Logging
+bind9_logging_enable: false
+bind9_log_path: /var/log/bind
+bind9_log_severity: warning  # critical | error | warning | notice | info | debug [ level ] | dynamic
+bind9_log_versions: 3
+bind9_log_size: 60m           # Time units
 ```
 
 Testing & Development
