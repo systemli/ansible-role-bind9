@@ -84,7 +84,7 @@ acl our_neighbors {
 {% endif %}
 };
 
-{% if bind9_logging_enable %}
+{% if bind9_named_logging %}
 logging {
   channel bind_log {
     file "{{ bind9_log_path }}/bind.log" versions {{ bind9_log_versions }} size {{ bind9_log_size }};
@@ -93,11 +93,8 @@ logging {
     print-severity yes;
     print-time yes;
   };
-  category default { bind_log; };
-  category update { bind_log; };
-  category update-security { bind_log; };
-  category security { bind_log; };
-  category queries { bind_log; };
-  category lame-servers { null; };
+  {% for category in bind9_log_categories %}
+  category {{ category.name }} { {{ category.destination }}; };
+  {% endfor %}
 };
 {% endif %}
