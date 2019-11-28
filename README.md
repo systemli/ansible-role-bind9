@@ -94,11 +94,25 @@ bind9_packages:
     - haveged
 
 # Logging
-bind9_logging_enable: false
+bind9_named_logging: False
 bind9_log_path: /var/log/bind
 bind9_log_severity: warning  # critical | error | warning | notice | info | debug [ level ] | dynamic
 bind9_log_versions: 3
 bind9_log_size: 60m           # Time units
+
+bind9_log_categories:
+  - name: default
+    destination: bind_log
+  - name: update
+    destination: bind_log
+  - name: update-security
+    destination: bind_log
+  - name: security
+    destination: default_syslog
+  - name: queries
+    destination: bind_log
+  - name: lame-servers
+    destination: 'null'
 ```
 
 Testing & Development
