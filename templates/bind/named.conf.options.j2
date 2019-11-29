@@ -83,3 +83,18 @@ acl our_neighbors {
 {%   endfor %}
 {% endif %}
 };
+
+{% if bind9_named_logging %}
+logging {
+  channel bind_log {
+    file "{{ bind9_log_path }}/bind.log" versions {{ bind9_log_versions }} size {{ bind9_log_size }};
+    severity {{ bind9_log_severity }};
+    print-category yes;
+    print-severity yes;
+    print-time yes;
+  };
+  {% for category in bind9_log_categories %}
+  category {{ category.name }} { {{ category.destination }}; };
+  {% endfor %}
+};
+{% endif %}
