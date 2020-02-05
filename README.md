@@ -93,6 +93,12 @@ bind9_packages:
     - dnsutils
     - haveged
 
+# Directory for bind9 files templates
+bind9_templates: ""
+# The default value takes templates form the {{ role_path }}/templates/ directory of the role 
+# You can set your own templates, for example with: 
+# bind9_templates: "{{ playbook_dir }}/host_vars/<my_host>/templates/"
+
 # Logging
 bind9_named_logging: False
 bind9_log_path: /var/log/bind
