@@ -7,7 +7,7 @@
 
 - name: copy bind9 defaults file
   template:
-    src: bind/default.j2
+    src: "{{ bind9_templates | default('') }}bind/default.j2"
     dest: /etc/default/bind9
     owner: root
     group: root
@@ -26,7 +26,7 @@
 
     - name: configure log rotate for bind9
       template:
-        src: logrotate.d/bind.j2
+        src: "{{ bind9_templates | default('') }}logrotate.d/bind.j2"
         dest: /etc/logrotate.d/bind
         owner: root
         group: "{{ bind9_group }}"
@@ -35,7 +35,7 @@
 
 - name: configure bind9 named.conf files
   template:
-    src: bind/{{ item }}.j2
+    src: "{{ bind9_templates | default('') }}bind/{{ item }}.j2"
     dest: /etc/bind/{{ item }}
     owner: root
     group: "{{ bind9_group }}"
@@ -45,6 +45,8 @@
     - named.conf.options
   notify:
     - reload bind9
+  # Variable register for eventual use outside the role 
+  register: bind9_named_conf
 
 - name: check validity of named.conf
   command: named-checkconf
@@ -66,7 +68,7 @@
 
 - name: install bind9 rndc key
   template:
-    src: bind/rndc.key.j2
+    src: "{{ bind9_templates | default('') }}bind/rndc.key.j2"
     dest: /etc/bind/rndc.key
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
@@ -220,7 +222,7 @@
 
 - name: create dynamic bind9 zone files
   template:
-    src: bind/zones/db.template.j2
+    src: "{{ bind9_templates | default('') }}bind/zones/db.template.j2"
     dest: /etc/bind/zones/db.{{ item.name }}
     owner: root
     group: "{{ bind9_group }}"
