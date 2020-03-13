@@ -9,7 +9,7 @@ env:
 
 install:
   # Install test dependencies.
-  - pip install molecule docker
+  - pip install molecule docker yamllint
 
 script:
   - molecule test -s docker
