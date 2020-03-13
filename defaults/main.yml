@@ -74,14 +74,14 @@ bind9_dnssec_notify_xmpp_host: "{{ ansible_jabber_host|default('localhost') }}"
 bind9_monit_enabled: no
 
 bind9_packages:
-    - bind9
-    - dnsutils
-    - haveged
+  - bind9
+  - dnsutils
+  - haveged
 
 # Directory for bind9 files templates
 bind9_templates: ""
-# The default value takes templates form the {{ role_path }}/templates/ directory of the role 
-# You can set your own templates, for example with: 
+# The default value takes templates form the {{ role_path }}/templates/ directory of the role
+# You can set your own templates, for example with:
 # bind9_templates: "{{ playbook_dir }}/host_vars/<my_host>/templates/"
 
 # Logging

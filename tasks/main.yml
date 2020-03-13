@@ -45,7 +45,7 @@
     - named.conf.options
   notify:
     - reload bind9
-  # Variable register for eventual use outside the role 
+  # Variable register for eventual use outside the role
   register: bind9_named_conf
 
 - name: check validity of named.conf
