@@ -66,6 +66,25 @@
     mode: 02775
   when: bind9_authoritative|default()
 
+- name: create bind9 directory for master zone includes
+  file:
+    path: /etc/bind/zones/includes
+    state: directory
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0755
+  when: bind9_authoritative|default()
+
+- name: install bind9 authoritative include files
+  copy:
+    src: "bind/zones/includes/{{ item }}"
+    dest: "/etc/bind/zones/includes/{{ item }}"
+    owner: root
+    group: "{{ bind9_group }}"
+    mode: 0755
+  with_items: "{{ bind9_authoritative_includes }}"
+  when: bind9_authoritative|default()
+
 - name: install bind9 rndc key
   template:
     src: "{{ bind9_templates | default('') }}bind/rndc.key.j2"
