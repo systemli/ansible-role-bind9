@@ -1,6 +1,7 @@
 # Ansible role to install and maintain the Bind9 nameserver on Debian
 
-[![Build Status](https://travis-ci.org/systemli/ansible-role-bind9.svg?branch=master)](https://travis-ci.org/systemli/ansible-role-bind9) [![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-bind9-blue.svg)](https://galaxy.ansible.com/systemli/bind9/)
+[![Build Status](https://github.com/systemli/ansible-role-bind9/workflows/Molecule/badge.svg?branch=master)](https://github.com/systemli/ansible-role-bind9/actions?query=workflow%3AIntegration)
+[![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-bind9-blue.svg)](https://galaxy.ansible.com/systemli/bind9/)
 
 This role installs and configures the Bind9 nameserver on Debian.
 
@@ -28,7 +29,7 @@ Testing & Development
 Tests
 -----
 
-For developing and testing the role we use Travis CI, Molecule and Vagrant. On the local environment you can easily test the role with
+For developing and testing the role we use Github Actions, Molecule and Vagrant. On the local environment you can easily test the role with
 
 Run local tests with:
 
