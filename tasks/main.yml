@@ -76,8 +76,8 @@
   when: bind9_authoritative|default()
 
 - name: install bind9 authoritative include files
-  copy:
-    src: "bind/zones/includes/{{ item }}"
+  template:
+    src: "bind/zones/includes/{{ item }}.j2"
     dest: "/etc/bind/zones/includes/{{ item }}"
     owner: root
     group: "{{ bind9_group }}"
