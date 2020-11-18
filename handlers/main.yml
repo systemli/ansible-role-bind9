@@ -14,3 +14,7 @@
   service:
     name: monit
     state: restarted
+
+- name: zone file change
+  debug:
+    msg: "dummy handler"

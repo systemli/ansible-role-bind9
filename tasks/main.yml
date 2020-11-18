@@ -81,9 +81,12 @@
     dest: "/etc/bind/zones/includes/{{ item }}"
     owner: root
     group: "{{ bind9_group }}"
-    mode: 0755
+    mode: 0644
   with_items: "{{ bind9_authoritative_includes }}"
   when: bind9_authoritative|default()
+  notify:
+    - zone file change
+    - reload bind9
 
 - name: install bind9 rndc key
   template:
@@ -251,6 +254,7 @@
     - bind9_authoritative|default()
     - item.type|default(bind9_zone_type) == 'master'
   notify:
+    - zone file change
     - reload bind9
   tags:
     - role:bind9:zones
@@ -268,6 +272,7 @@
     - bind9_authoritative|default()
     - item.type|default(bind9_zone_type) == 'master'
   notify:
+    - zone file change
     - reload bind9
   tags:
     - role:bind9:zones
