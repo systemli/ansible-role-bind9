@@ -219,12 +219,9 @@
   tags:
     - role:bind9:dnssec
 
-- name: send ZSK in DNSSEC and DS format over XMPP
-  jabber:
-    user: "{{ bind9_dnssec_notify_xmpp_user }}"
-    password: "{{ bind9_dnssec_notify_xmpp_password }}"
-    to: "{{ bind9_dnssec_notify_xmpp_rcpt }}"
-    msg: 'New zone signing key (ZSK) for zone "{{ item.0.item.item.item.name }}" needs to be inserted/updated at registrar (use the format that the registrar demands):
+- name: Generate notification message
+  set_fact:
+    notification_message: 'New zone signing key (ZSK) for zone "{{ item.0.item.item.item.name }}" needs to be inserted/updated at registrar (use the format that the registrar demands):
 
 {{ item.0.stdout }}
 
@@ -232,8 +229,25 @@
   with_together:
     - "{{ bind9_reg_zsk.results }}"
     - "{{ bind9_reg_zsk_ds.results }}"
+  when:
+    - bind9_authoritative
+    - bind9_dnssec|default()
+    - item.0.item.changed|default()
+    - bind9_dnssec_notify_xmpp or bind9_dnssec_notify_matrix
+  tags:
+    - role:bind9:dnssec
+
+- name: send ZSK in DNSSEC and DS format over XMPP
+  jabber:
+    user: "{{ bind9_dnssec_notify_xmpp_user }}"
+    password: "{{ bind9_dnssec_notify_xmpp_password }}"
+    to: "{{ bind9_dnssec_notify_xmpp_rcpt }}"
+    msg: "{{ notification_message }}"
   delegate_to: "{{ bind9_dnssec_notify_xmpp_host }}"
   ignore_errors: "{{ ansible_check_mode }}"
+  with_together:
+    - "{{ bind9_reg_zsk.results }}"
+    - "{{ bind9_reg_zsk_ds.results }}"
   when:
     - bind9_authoritative
     - bind9_dnssec|default()
@@ -241,6 +255,43 @@
     - bind9_dnssec_notify_xmpp
   tags:
     - role:bind9:dnssec
+
+# send message to matrix
+- name: Set matrix notification message
+  set_fact:
+    bind9_matrix_notifier_text: "{{ notification_message }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  with_together:
+    - "{{ bind9_reg_zsk.results }}"
+    - "{{ bind9_reg_zsk_ds.results }}"
+  when:
+    - bind9_authoritative
+    - bind9_dnssec|default()
+    - item.0.item.changed|default()
+    - bind9_dnssec_notify_matrix
+  tags:
+    - role:bind9:dnssec
+
+
+- name: Send message to matrix via webhook
+  uri:
+    url: "{{ bind9_matrix_notifier_url }}"
+    method: POST
+    body: "{{ bind9_matrix_notifier_body|to_nice_json }}"
+    status_code: 200
+    body_format: json
+  ignore_errors: "{{ ansible_check_mode }}"
+  with_together:
+    - "{{ bind9_reg_zsk.results }}"
+    - "{{ bind9_reg_zsk_ds.results }}"
+  when:
+    - bind9_authoritative
+    - bind9_dnssec|default()
+    - item.0.item.changed|default()
+    - bind9_dnssec_notify_matrix
+  tags:
+    - role:bind9:dnssec
+
 
 - name: create dynamic bind9 zone files
   template:
