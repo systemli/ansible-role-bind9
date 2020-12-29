@@ -1,6 +1,6 @@
 # Ansible role to install and maintain the Bind9 nameserver on Debian
 
-[![Build Status](https://github.com/systemli/ansible-role-bind9/workflows/Molecule/badge.svg?branch=master)](https://github.com/systemli/ansible-role-bind9/actions?query=workflow%3AIntegration)
+[![Build Status](https://github.com/systemli/ansible-role-bind9/workflows/Integration/badge.svg?branch=master)](https://github.com/systemli/ansible-role-bind9/actions?query=workflow%3AIntegration)
 [![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-bind9-blue.svg)](https://galaxy.ansible.com/systemli/bind9/)
 
 This role installs and configures the Bind9 nameserver on Debian.
