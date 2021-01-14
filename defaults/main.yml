@@ -66,6 +66,9 @@ bind9_zones_static: []
 # Authoritative include files
 bind9_authoritative_includes: []
 
+# DNSSEC is activated for all DNS zones per default
+bind9_dnssec_zones_default_enabled: true
+
 # Send DNSSEC ZSK in DNSKEY and DS format over XMPP after it got created
 bind9_dnssec_notify_xmpp: no
 bind9_dnssec_notify_xmpp_user: user@jabber.example.org

@@ -152,8 +152,8 @@
     - "{{ bind9_zones_dynamic }} + {{ bind9_zones_static }}"
   when:
     - bind9_authoritative|default()
-    - bind9_dnssec|default() or item.dnssec|default()
-    - item.dnssec|default(True)
+    - bind9_dnssec|default() or item.dnssec|default(bind9_dnssec_zones_default_enabled)
+    - item.dnssec|default(bind9_dnssec_zones_default_enabled)
   tags:
     - role:bind9:dnssec
 
