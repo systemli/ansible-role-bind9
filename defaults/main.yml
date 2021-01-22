@@ -56,6 +56,9 @@ bind9_rndc_algorithm: hmac-md5
 # bind9_slaves:
 #  - 1.2.3.4
 
+# Enable BIND's XML statistics-channels (for monitoring purposes)
+bind9_statistics_enabled: False
+
 # DNS zones
 # bind9_zone_dynamic: zone files created from template (see
 #         `templates/bind/zones/db.template.j2` for yaml structure)
