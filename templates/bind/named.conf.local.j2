@@ -25,6 +25,12 @@ masters {{ master.name }} {
 {%   endfor %}
 {% endif %}
 
+{% if bind9_statistics_enabled %}
+statistics-channels {
+  inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+};
+{% endif %}
+
 // The following zones are managed by this DNS Server //
 {% for zone in (bind9_zones_static + bind9_zones_dynamic)|sort(attribute='name') %}
 {% set zone_type = zone.type|default(bind9_zone_type|default('master')) %}
