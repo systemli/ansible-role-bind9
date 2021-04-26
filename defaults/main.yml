@@ -16,6 +16,9 @@ bind9_authoritative: no
 # Setup DNSSEC for recursor and zones?
 bind9_dnssec: no
 
+# DNSSEC validation mode (yes/no/auto)
+bind9_dnssec_validation: "auto"
+
 # Run bind as a hidden master (i.e. limit queries to our_networks)
 bind9_hidden_master: no
 
