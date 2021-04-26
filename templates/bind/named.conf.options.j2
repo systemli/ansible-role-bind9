@@ -18,7 +18,7 @@ options {
 	// If BIND logs error messages about the root key being expired,
 	// you will need to update your keys.  See https://www.isc.org/bind-keys
 	//========================================================================
-	dnssec-validation {{ bind9_recusor|default()|ternary('auto', 'yes') }};
+	dnssec-validation {{ bind9_dnssec_validation }};
 
 	auth-nxdomain no;    # conform to RFC1035
 	listen-on-v6 { any; };
