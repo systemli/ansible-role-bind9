@@ -12,6 +12,8 @@
   mx_records:
     - priority: 10
       name: mx1.example.org.
+  caa_records: 
+    - 0 issue "example-ca.org"
   rrs:
     - label: subdomain
       type: A|CNAME|...
@@ -50,6 +52,14 @@ $TTL {{ zone.negative_ttl|default('3600') }}   ; 1 hour
 {% if zone.txt_records is defined %}
 {%   for txt in zone.txt_records %}
                     TXT     "{{ txt }}"
+{%   endfor %}
+{% endif %}
+{# CAA record is being used to specify a CA for this domain.
+   Only this CA can create certificates for the domain.
+   Also see: https://www.rfc-editor.org/rfc/rfc8659.html #}
+{% if zone.caa_records is defined %}
+{%   for caa in zone.caa_records %}
+                    CAA     {{ caa }}
 {%   endfor %}
 {% endif %}
 $ORIGIN {{ zone.name }}.
