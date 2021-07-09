@@ -4,6 +4,7 @@
   apt:
     pkg: "{{ bind9_packages }}"
     state: present
+    cache_valid_time: 600
 
 - name: copy bind9 defaults file
   template:
