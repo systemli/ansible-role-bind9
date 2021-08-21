@@ -13,6 +13,9 @@ bind9_recursor: no
 # Run bind as authoritative nameserver?
 bind9_authoritative: no
 
+# run bind with forwarding?
+bind9_forward: no
+
 # Setup DNSSEC for recursor and zones?
 bind9_dnssec: no
 
