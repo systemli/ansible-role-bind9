@@ -10,9 +10,13 @@ options {
 	// Uncomment the following block, and insert the addresses replacing 
 	// the all-0's placeholder.
 
-	// forwarders {
-	// 	0.0.0.0;
-	// };
+{% if bind9_forward|default() %}
+  forwarders {
+    {% for forwarder in bind9_forward_servers %}
+      {{ forwarder }};
+    {% endfor %}
+  };
+{% endif %}                                                                                                                                                   
 
 	//========================================================================
 	// If BIND logs error messages about the root key being expired,
