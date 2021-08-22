@@ -50,6 +50,7 @@ bind9_forward_servers:
 - 4.4.4.4
 bind9_masters:
 - { name: master_name, addresses: [master_ip] }
+bind9_recursor: our_network
 ```
 
 
