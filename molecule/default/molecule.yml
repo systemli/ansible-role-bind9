@@ -4,10 +4,8 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: buster64
-    box: debian/buster64
-  - name: stretch64
-    box: debian/stretch64
+  - name: bullseye64
+    box: debian/bullseye64
 provisioner:
   name: ansible
   become: true
