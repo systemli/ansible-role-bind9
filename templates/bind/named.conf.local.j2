@@ -52,13 +52,6 @@ zone "{{ zone.name }}" {
         grant {{ zone.name }}_ddns_update {{ zone.update_policy_grant }};
     };
 {%     endif %}
-{%   elif zone_type == 'forward' %} 
-    forwarders { 
-{%         for fwd in zone.forwarders %}
-        {{ master }};
-{%         endfor %}
-    };
-{%     endif %}
 {%   elif zone_type == 'slave' %}
     file "/var/lib/bind/db.{{ zone.name }}";
 {%     if zone.masters|default() or bind9_masters|default() %}
@@ -76,12 +69,12 @@ zone "{{ zone.name }}" {
     };
 {%     endif %}
 {%   else %}
-{%   if zone_type == 'forward' %}                                                                                                                           
-    forwarders { 
+{%      if zone_type == 'forward' %}
+    forwarders {
 {%         for fwd in zone.forwarders %}
-        {{ fwd }};
+        {{ fwd }}; 
 {%         endfor %}
-    };
+   }; 
 {%     endif %}
 {%   endif %}
 };
