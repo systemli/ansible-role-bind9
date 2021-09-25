@@ -196,11 +196,11 @@
   tags:
     - role:bind9:dnssec
 
-- name: read in zone signing keys from key files (DNSKEY)
+- name: read in key signing keys from key files (DNSKEY)
   command: "grep 'IN DNSKEY' /etc/bind/keys/{{ item.stdout }}.key"
-  register: bind9_reg_zsk
+  register: bind9_reg_ksk
   changed_when: false
-  with_items: "{{ bind9_reg_keygen_zsk.results }}"
+  with_items: "{{ bind9_reg_keygen_ksk.results }}"
   when:
     - bind9_authoritative|default()
     - bind9_dnssec|default()
@@ -208,11 +208,11 @@
   tags:
     - role:bind9:dnssec
 
-- name: generate DS records from zone signing keys
+- name: generate DS records from key signing keys
   command: "dnssec-dsfromkey -2 /etc/bind/keys/{{ item.stdout }}.key"
-  register: bind9_reg_zsk_ds
+  register: bind9_reg_ksk_ds
   changed_when: false
-  with_items: "{{ bind9_reg_keygen_zsk.results }}"
+  with_items: "{{ bind9_reg_keygen_ksk.results }}"
   when:
     - bind9_authoritative|default()
     - bind9_dnssec|default()
@@ -222,14 +222,14 @@
 
 - name: Generate notification message
   set_fact:
-    notification_message: 'New zone signing key (ZSK) for zone "{{ item.0.item.item.item.name }}" needs to be inserted/updated at registrar (use the format that the registrar demands):
+    notification_message: 'New key signing key (KSK) for zone "{{ item.0.item.item.item.name }}" needs to be inserted/updated at registrar (use the format that the registrar demands):
 
 {{ item.0.stdout }}
 
 {{ item.1.stdout }}'
   with_together:
-    - "{{ bind9_reg_zsk.results }}"
-    - "{{ bind9_reg_zsk_ds.results }}"
+    - "{{ bind9_reg_ksk.results }}"
+    - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
     - bind9_dnssec|default()
@@ -238,7 +238,7 @@
   tags:
     - role:bind9:dnssec
 
-- name: send ZSK in DNSSEC and DS format over XMPP
+- name: send KSK in DNSSEC and DS format over XMPP
   jabber:
     user: "{{ bind9_dnssec_notify_xmpp_user }}"
     password: "{{ bind9_dnssec_notify_xmpp_password }}"
@@ -247,8 +247,8 @@
   delegate_to: "{{ bind9_dnssec_notify_xmpp_host }}"
   ignore_errors: "{{ ansible_check_mode }}"
   with_together:
-    - "{{ bind9_reg_zsk.results }}"
-    - "{{ bind9_reg_zsk_ds.results }}"
+    - "{{ bind9_reg_ksk.results }}"
+    - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
     - bind9_dnssec|default()
@@ -263,8 +263,8 @@
     bind9_matrix_notifier_text: "{{ notification_message }}"
   ignore_errors: "{{ ansible_check_mode }}"
   with_together:
-    - "{{ bind9_reg_zsk.results }}"
-    - "{{ bind9_reg_zsk_ds.results }}"
+    - "{{ bind9_reg_ksk.results }}"
+    - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
     - bind9_dnssec|default()
@@ -283,8 +283,8 @@
     body_format: json
   ignore_errors: "{{ ansible_check_mode }}"
   with_together:
-    - "{{ bind9_reg_zsk.results }}"
-    - "{{ bind9_reg_zsk_ds.results }}"
+    - "{{ bind9_reg_ksk.results }}"
+    - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
     - bind9_dnssec|default()
