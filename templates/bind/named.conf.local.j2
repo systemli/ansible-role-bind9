@@ -68,6 +68,14 @@ zone "{{ zone.name }}" {
 {%       endif %}
     };
 {%     endif %}
+{%   else %}
+{%      if zone_type == 'forward' %}
+    forwarders {
+{%         for fwd in zone.forwarders %}
+        {{ fwd }}; 
+{%         endfor %}
+   }; 
+{%     endif %}
 {%   endif %}
 };
 {% endfor %}
