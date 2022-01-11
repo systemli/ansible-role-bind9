@@ -23,9 +23,9 @@ options {
 	// you will need to update your keys.  See https://www.isc.org/bind-keys
 	//========================================================================
 	dnssec-validation {{ bind9_dnssec_validation }};
-
+{% if ansible_distribution_major_version|int >= '11'  %}
 	qname-minimization {{ bind9_qname_minimization }};
-
+{% endif %}
 	auth-nxdomain no;    # conform to RFC1035
 	listen-on-v6 { any; };
 
