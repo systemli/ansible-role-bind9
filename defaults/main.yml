@@ -110,7 +110,6 @@ bind9_monit_enabled: no
 bind9_packages:
   - bind9
   - dnsutils
-  - haveged
 
 # Directory for bind9 files templates
 bind9_templates: ""
