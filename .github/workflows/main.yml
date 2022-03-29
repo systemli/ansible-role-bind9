@@ -18,14 +18,13 @@ jobs:
         distro:
           - debian11
           - debian10
-          - debian9
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.0
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v2.3.2
+        uses: actions/setup-python@v3.0.0
         with:
           python-version: '3.x'
 

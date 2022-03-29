@@ -16,6 +16,5 @@ galaxy_info:
       versions:
         - bullseye
         - buster
-        - stretch
   notifications:
     webhooks: https://galaxy.ansible.com/api/v1/notifications/
