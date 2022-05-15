@@ -56,7 +56,9 @@ bind9_recursor: our_network
 ```
 ### Dynamic zones
 So called "dynamic" zones' records are defined through YAML ansible variable `bind9_zones_dynamic` which is parsed by [`bind/zones/db.template.j2`](templates/bind/zones/db.template.j2) template.
-As there can be several zones, and zones definitions can be long, zones vars are worthly defined in a different vars' file, for instance `host_vars/master_name/vars/YY_zones.yml`, and  `bind9_zones_dynamic` can be splited in several variables, that can bie defined in specific files. In `YY_zones.yml` we may have:
+As there can be several zones, and zone definitions can be long, zone vars are worthily defined in a different vars file, for instance `host_vars/master_name/vars/YY_zones.yml`.  `bind9_zones_dynamic` can be split in several variables, which can be defined in specific files, as in the example below.
+
+In `YY_zones.yml` we may have:
 ```yaml
 bind9_zones_dynamic: >
         {{ zones_my_domains
