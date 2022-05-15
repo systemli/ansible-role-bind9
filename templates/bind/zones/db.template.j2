@@ -21,8 +21,9 @@
 #}{% set zone=item %}
 ;; {{ ansible_managed }}
 $ORIGIN .
-$TTL {{ zone.negative_ttl|default('3600') }}   ; 1 hour
-{# We first deal in detail with SOA and NS, which is requiered, and root zone registers
+{# Default TTL of zone records. `negative_ttl` is a deprecated name of this variable.  #}
+$TTL {{ zone.default_ttl|default(zone.negative_ttl|default('3600')) }}   ; 1 hour. 
+{# We first deal in detail with SOA and NS, which are requiered, and root zone registers
    Empezamos detallando el SOA y NS, que son indispensables, y registros de raíz de zona #}
 {{ zone.name }} IN  SOA     {{ zone.primary|default(zone.ns_records.0) }}. {{ zone.admin|default(bind9_admin) }}. (
                 {{ zone.serial }} ; serial
