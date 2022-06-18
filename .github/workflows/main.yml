@@ -3,6 +3,8 @@ name: Integration
 on:
   pull_request:
   push:
+    branches:
+      - main
   schedule:
     # * is a special character in YAML so you have to quote this string
     # first of each month
@@ -24,12 +26,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v3.1.2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
       - name: Install test dependencies.
-        run: pip3 install ansible-lint molecule[docker] molecule-goss yamllint
+        run: pip3 install rich==10.16.2 ansible-lint==4.3.7 molecule[docker]==3.6.1 molecule-goss yamllint
 
       - name: Run Molecule tests.
         run: molecule test -s docker
@@ -37,7 +39,6 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
-
   release:
     name: Ansible Galaxy
     needs:
@@ -49,4 +50,4 @@ jobs:
         with:
           galaxy_api_key: ${{ secrets.galaxy_api_key }}
           git_branch: main
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || contains(github.ref, 'refs/tags/')
