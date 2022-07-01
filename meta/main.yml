@@ -5,7 +5,7 @@ galaxy_info:
   description: Role to install and maintain the Bind9 nameserver on Debian
   company: systemli.org
   license: GPLv3
-  min_ansible_version: "2.4"
+  min_ansible_version: 2.4
   galaxy_tags:
     - bind9
     - dns
@@ -16,3 +16,5 @@ galaxy_info:
       versions:
         - bullseye
         - buster
+  notifications:
+    webhooks: https://galaxy.ansible.com/api/v1/notifications/

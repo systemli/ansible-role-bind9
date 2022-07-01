@@ -5,10 +5,16 @@
 // Consider adding the 1918 zones here, if they are not used in your
 // organization
 //include "/etc/bind/zones.rfc1918";
+{% if bind9_statistics_enabled %}
+statistics-channels {
+  inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+};
 
+{% endif %}
 {% if bind9_masters|default() %}
+// masters for zones and allow-notify
 {%   for master in bind9_masters %}
-masters {{ master.name }} {
+masters "{{ master.name }}" {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
@@ -17,18 +23,23 @@ masters {{ master.name }} {
 {% endif %}
 {% if bind9_masters_extra|default() %}
 {%   for master in bind9_masters_extra %}
-masters {{ master.name }} {
+masters "{{ master.name }}" {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
 };
 {%   endfor %}
 {% endif %}
+{% if bind9_acl is defined %}
 
-{% if bind9_statistics_enabled %}
-statistics-channels {
-  inet 127.0.0.1 port 8053 allow { 127.0.0.1; };
+	// Custom acls
+{%   for acl_item in bind9_acl %}
+acl "{{ acl_item.name }}" {
+{%     for item_address in acl_item.addresses %}
+	{{ item_address }};
+{%     endfor %}
 };
+{%   endfor %}
 {% endif %}
 
 // The following zones are managed by this DNS Server //
@@ -38,44 +49,63 @@ zone "{{ zone.name }}" {
     type {{ zone_type }};
 {%   if zone_type == 'master' %}
     file "/etc/bind/zones/db.{{ zone.name }}";
-{%     if bind9_notify_explicit|default() %}
-    notify explicit;
-{%     elif zone.notify|default(true) %}
-    notify yes;
+{%     if zone.allow_query is defined %}
+    allow-query {
+{%       for allow_query_item in zone.allow_query %}
+        {{ allow_query_item }};
+{%       endfor %}
+    };
 {%     endif %}
-{%     if (bind9_dnssec|default() or zone.dnssec|default()) and zone.dnssec|default(bind9_dnssec_zones_default_enabled) %}
+{%     if zone.allow_transfer is defined %}
+    allow-transfer {
+{%       for allow_transfer_item in zone.allow_transfer %}
+        {{ allow_transfer_item }};
+{%       endfor %}
+    };
+{%     endif %}
+{%     if bind9_notify_explicit %}
+    notify explicit;
+{%     elif zone.notify | default(true) %}
+    notify {{ zone.notify | default(true) | ternary ('yes','no') }};
+{%     endif %}
+{%     if zone.also_notify is defined %}
+    also-notify {
+{%       for also_notify_item in zone.also_notify %}
+        {{ also_notify_item }};
+{%       endfor %}
+    };
+{%     endif %}
+{%     if (bind9_dnssec or zone.dnssec | default() ) and zone.dnssec | default( bind9_dnssec_zones_default_enabled ) %}
     auto-dnssec maintain;
     inline-signing yes;
 {%     endif %}
-{%     if zone.update_policy_grant|default() %}
+{%     if zone.update_policy_grant | default() %}
     update-policy {
         grant {{ zone.name }}_ddns_update {{ zone.update_policy_grant }};
     };
 {%     endif %}
 {%   elif zone_type == 'slave' %}
     file "/var/lib/bind/db.{{ zone.name }}";
-{%     if zone.masters|default() or bind9_masters|default() %}
+{%     if zone.masters | default() or bind9_masters | default() %}
     notify no;
     masters {
-{%       if zone.masters|default() %}
+{%       if zone.masters | default() %}
 {%         for master in zone.masters %}
         {{ master }};
 {%         endfor %}
-{%       elif bind9_masters|default() %}
+{%       elif bind9_masters | default() %}
 {%         for master in bind9_masters %}
         {{ master.name }};
 {%         endfor %}
 {%       endif %}
     };
 {%     endif %}
-{%   else %}
-{%      if zone_type == 'forward' %}
+{%   elif zone_type == 'forward' %}
     forwarders {
-{%         for fwd in zone.forwarders %}
+{%     for fwd in zone.forwarders %}
         {{ fwd }}; 
-{%         endfor %}
+{%     endfor %}
    }; 
-{%     endif %}
 {%   endif %}
 };
 {% endfor %}
