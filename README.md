@@ -19,6 +19,14 @@ Features:
 * Validity check of zone files with named-checkzone
 * Basic support for so called "dynamic" zones, i.e. defined from variables yaml variables sets
 
+## Configuration design helper: sister role [UdelaRInterior.bind9_cluster](https://github.com/UdelaRInterior/ansible-role-bind9-cluster)
+
+We designed a sister role that role will help to build [systemli.bind9](https://galaxy.ansible.com/systemli/bind9) role's configuration for a set of BIN9 NS servers, from a single description of the DNS zones data: its definition as well as its configuration in the NS authoritative servers being configured.   
+
+Indeed, morover the update of an already deployed DNS zone, the most common process in DNS change management is the deployment of a new zone in a set of authoritative nameservers. We porceed zone by zone, not server by server. With [systemli.bind9](https://galaxy.ansible.com/systemli/bind9) role alone, the deployment of a zone implies the update of as much NS servers' configurations as the zone has authoritative nameservers. 
+
+This sister role, [UdelaRInterior.bind9_cluster](https://github.com/UdelaRInterior/ansible-role-bind9-cluster), allows to group the whole configuration of a set of zones deployed in a set of NS servers - the BIN9 cluster - in a single structure variable defiend at the level of the group of the cluster.  
+
 ## Basic server configuration
 
 Lest's start by a simple but complete configuration of two servers:
