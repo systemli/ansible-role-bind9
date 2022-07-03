@@ -35,10 +35,10 @@ Lest's start by a simple but complete configuration of two servers:
 
 * set vars for your master server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zone and forwarder:
 ```yaml
-bind9_authoritative: yes
+bind9_authoritative: true
 bind9_zones_static: 
 - { name: example.com , type=master }
-bind9_forward: yes
+bind9_forward: true
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4
@@ -60,7 +60,7 @@ bind9_our_neighbors:
 ```yaml
 bind9_zones_static: 
 - { name: example.com, type: slave }
-bind9_forward: yes
+bind9_forward: true
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4

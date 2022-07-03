@@ -42,7 +42,7 @@ bind9_notify_explicit: no
 bind9_zone_type: master
 
 ## //!\\ Several of the following variables have different meanings or (no meaning at all) depending on the templates' set you use
-## See here after bind9_template variable. 
+## See here after bind9_template variable.
 
 # Permitted hosts/networks for recursion (when configured as recursor)
 # variable used only by default templates, not strict_authoritative
@@ -84,7 +84,7 @@ bind9_rndc_algorithm: hmac-md5
 # Let's progressively rename this variable with bind's preferred terminology:
 # bind9_secondaries: "{{ bind9_slaves }}"
 
-# bind9_acl: 
+# bind9_acl:
 # undefined by default, this variable allows to define a set of several access control lists (ACL)
 # with the same format as `bind9_masters`, and use it in slaves. allow-query or allow-transfer definitions 
 
@@ -94,19 +94,19 @@ bind9_rndc_algorithm: hmac-md5
 # bind9_also_allow_transfer:
 # bind9_also_allow_transfer: '{{ bind9_also_notify if bind9_also_notify is defined else undef }}'
 # defaults to bind9_also_notify, but this definitio must be overwritten if this vairable contains masters names.
-# As far as bind9_also_notify is just a list of IPs, default values of the role take advantage of the similar strucuture 
-# in YAML for lasters lists and ACLs, and the can by default allow transfer, zone by zone, to slaves and also notify IPS  
+# As far as bind9_also_notify is just a list of IPs, default values of the role take advantage of the similar strucuture
+# in YAML for lasters lists and ACLs, and the can by default allow transfer, zone by zone, to slaves and also notify IPS 
 
 # bind9_also_allow_transfer
 #bind9_also_allow_transfer: '{{ bind9_also_notify if bind9_also_notify is defined else undef }}'
 # for primary zones, except if `allow_transfer` is explicitly defined for the zone, by default an `allow-transfer` list
 # will be set, iincluding slave NS of the host and either the list also_allow_transfer defined for the zone, either this
-# default list. 
-# If `bind9_also_notify` is defined by default `bind9_also_allow_transfer` has the same values. 
-# But be carefull: in BIND9 configuration, `also-notify` may include `masters` lists but not `acl` ones, while 
+# default list.
+# If `bind9_also_notify` is defined by default `bind9_also_allow_transfer` has the same values.
+# But be carefull: in BIND9 configuration, `also-notify` may include `masters` lists but not `acl` ones, while
 # `allow-transfer` may include `acl` lists but not `masters` ones. In YAML role's variables structures are identical, but
-# if they appear in BIND configuration list inclusions it will fail. 
-# Practically: if you use `masters` lists (defined with `bind9_masters`or `bind9_masters_extra` variables of this role), 
+# if they appear in BIND configuration list inclusions it will fail.
+# Practically: if you use `masters` lists (defined with `bind9_masters`or `bind9_masters_extra` variables of this role),
 # yo must re-define separately `bind9_also_allow_transfer`, probably defining an ACL with same values than master lists. 
 
 # Enable BIND's XML statistics-channels (for monitoring purposes)
@@ -121,7 +121,7 @@ bind9_zones_static: []
 
 # With this value, the `copy` module will look for zone files in `files/bind/zones/` in the playbook directory
 bind9_zone_files: bind/zones/
-# Overwrite, for instance if you want to put your db.* zone files in your host vars: 
+# Overwrite, for instance if you want to put your db.* zone files in your host vars:
 # bind9_zone_files: '{{ playbook_dir }}/host_vars/{{ ansible_hostname }}/files/bind/zones/'
 
 # Authoritative include files
@@ -163,13 +163,13 @@ bind9_packages:
 # Directory for bind9 files templates
 bind9_templates: ""
 # The role can handle different sets of templates for bind and zones configuration.
-# It presently proposes two sets of templates: 
-# * the defaults one, "", wich is a general purpose configuration set, that has evolved with the role. 
+# It presently proposes two sets of templates:
+# * the defaults one, "", wich is a general purpose configuration set, that has evolved with the role.
 #   It's files live in {{ role_path }}/templates/ directory
-# * a second new set for a strict authoritative bind NS server: `strict_authoritative` It accepts DNS queries only for zones it is authoritative for. 
-#   allow-transfer for secunday NS servers, notify-also for hidden slaves, and even allow-query and notify can be defined zone by zone. 
+# * a second new set for a strict authoritative bind NS server: `strict_authoritative` It accepts DNS queries only for zones it is authoritative for.
+#   allow-transfer for secunday NS servers, notify-also for hidden slaves, and even allow-query and notify can be defined zone by zone.
 #   It's files live in {{ role_path }}/templates/strict_authoritative/ directory
-#   Note that several default variables `bind9_*` have different meanings than with default templates' set.   
+#   Note that several default variables `bind9_*` have different meanings than with default templates' set.
 # bind9_templates nust be set as a relative or absolute directory, including it's trailing "/":
 # bind9_templates: strict_authoritative/
 # You can set your own templates, for example with:

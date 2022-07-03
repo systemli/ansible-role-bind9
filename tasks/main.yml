@@ -16,7 +16,8 @@
   notify:
     - restart bind9
 
-- block:
+- name: bind9 logs configuration
+  block:
     - name: ensure existence of the log directory
       file:
         path: "{{ bind9_log_path }}"
@@ -143,7 +144,8 @@
     - item.type|default(bind9_zone_type) == 'master'
     - item.update_keyfile|default()
 
-- debug:
+- name: view zones  
+  debug:
     var: item
     verbosity: 2
   with_items:
@@ -171,7 +173,8 @@
     - role:bind9:dnssec
 
 # Filter out all skipped results (e.g. if item.dnssec is set to False)
-- set_fact:
+- name: set bind9_reg_dnssec_keys fact
+  set_fact:
     bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results|selectattr('skipped', 'undefined')|list }}"
 
 - name: generate bind9 key signing keys for zones
