@@ -14,8 +14,8 @@ statistics-channels {
 {% endif %}
 {% if bind9_masters is defined or bind9_masters_extra is defined %}
 
-// masters clause lists for masters secondary zones and also-notify statements
-// and ACLs with same name and content, to be used in allow-transfer statements
+// masters lists for masters' secondary zones and also-notify statements 
+// and ACLs with same name and content, to be used in allow-transfer clauses
 {%   for master in bind9_masters | default ([]) + bind9_masters_extra | default ([]) %}
 masters {{ master.name }} {
 {%     for addr in master.addresses %}

@@ -14,7 +14,7 @@ statistics-channels {
 {% if bind9_masters|default() %}
 // masters for zones and allow-notify
 {%   for master in bind9_masters %}
-masters "{{ master.name }}" {
+masters {{ master.name }} {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
@@ -23,7 +23,7 @@ masters "{{ master.name }}" {
 {% endif %}
 {% if bind9_masters_extra|default() %}
 {%   for master in bind9_masters_extra %}
-masters "{{ master.name }}" {
+masters {{ master.name }} {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
@@ -34,7 +34,7 @@ masters "{{ master.name }}" {
 
 	// Custom acls
 {%   for acl_item in bind9_acl %}
-acl "{{ acl_item.name }}" {
+acl {{ acl_item.name }} {
 {%     for item_address in acl_item.addresses %}
 	{{ item_address }};
 {%     endfor %}

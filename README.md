@@ -19,14 +19,6 @@ Features:
 * Validity check of zone files with named-checkzone
 * Basic support for so called "dynamic" zones, i.e. defined from variables yaml variables sets
 
-## Configuration design helper: sister role [UdelaRInterior.bind9_cluster](https://github.com/UdelaRInterior/ansible-role-bind9-cluster)
-
-We designed a sister role that role will help to build [systemli.bind9](https://galaxy.ansible.com/systemli/bind9) role's configuration for a set of BIN9 NS servers, from a single description of the DNS zones data: its definition as well as its configuration in the NS authoritative servers being configured.   
-
-Indeed, morover the update of an already deployed DNS zone, the most common process in DNS change management is the deployment of a new zone in a set of authoritative nameservers. We porceed zone by zone, not server by server. With [systemli.bind9](https://galaxy.ansible.com/systemli/bind9) role alone, the deployment of a zone implies the update of as much NS servers' configurations as the zone has authoritative nameservers. 
-
-This sister role, [UdelaRInterior.bind9_cluster](https://github.com/UdelaRInterior/ansible-role-bind9-cluster), allows to group the whole configuration of a set of zones deployed in a set of NS servers - the BIN9 cluster - in a single structure variable defiend at the level of the group of the cluster.  
-
 ## Basic server configuration
 
 Lest's start by a simple but complete configuration of two servers:
@@ -35,10 +27,10 @@ Lest's start by a simple but complete configuration of two servers:
 
 * set vars for your master server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zone and forwarder:
 ```yaml
-bind9_authoritative: true
+bind9_authoritative: yes
 bind9_zones_static: 
 - { name: example.com , type=master }
-bind9_forward: true
+bind9_forward: yes
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4
@@ -60,7 +52,7 @@ bind9_our_neighbors:
 ```yaml
 bind9_zones_static: 
 - { name: example.com, type: slave }
-bind9_forward: true
+bind9_forward: yes
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4
@@ -194,10 +186,10 @@ Explicitely, you can use the following variables to configure your NS server and
     - IPv6_1
   ```
   With these lists the template builds the [primaries' or masters' list(s)](https://bind9.readthedocs.io/en/latest/reference.html?highlight=primaries%20list#primaries-statement-grammar) to be used by default as `masters` for zones we are slave for, when masters are not specifically set for the zone. Note that masters' list can only other masters' lists names or individual IPs. IPv4 or IPv6, but not network IPs range, ending with a / and a mask length. 
-  
-  __Magic-mix of acls and masters' lists__: Thanks to the similarity of YAML structure with `bind9_acl` variable hereafter, for each element of `bind9_masters` the templates build, moreover the primaries' list, an [Access Control List (ACL)](https://bind9.readthedocs.io/en/latest/chapter6.html#access-control-lists) with the same name and content. Therefore, contrarily than when working directly on BIND9 configuration files, we can use masters' list names, not only in [the variables that define] `masters` or `also-notify` statements of a zone, but also in [the variables that define] statements which work with ACLs, such as `allow-transfer` or `allow-query`. Taking advantage of this trick, the role can automatically include a similar content into an notify-also statement (which requires a masters' list) as well as in the allow-transfer ones (which require an ACL). See hereafter.
 
-* `bind9_masters_extra` is a similar structure that also sets primaries' lists, but which are not the role's default values for zones declared. For similar purposes than `bind9_masters`, ACLs are also built for `bind9_masters_extra` items. Similarly than `bind9_masters`, `bind9_masters_extra` elements can be used, not only where such lists are valid for, i.e. to set masters and also-notify zone's lists, but also where ACLs are needed, such as `allow-transfer` or `allow-query`. 
+* `bind9_masters_extra` is a similar structure that also sets primaries' lists, but which are not the role's default values for zones declared.
+
+  __Magic-mix of acls and masters' lists__: Thanks to the similarity of these YAML structure with `bind9_acl` variable hereafter, for each element of `bind9_masters` and `bind9_masters_extra` the templates build, moreover the primaries' list, an [Access Control List (ACL)](https://bind9.readthedocs.io/en/latest/chapter6.html#access-control-lists) with the same name and content. Therefore, contrarily than when working directly on BIND9 configuration files, we can use masters' list names, not only in [the variables that define] `masters` or `also-notify` clauses of a zone, but also in [the variables that define] clauses which work with ACLs, such as `allow-transfer` or `allow-query`. Taking advantage of this trick, the role can automatically include a similar content into a notify-also clause (which requires a masters' list) as well as in the allow-transfer ones (which require an ACL). See hereafter.
 
 * `bind9_acl` has a quite similar structure with keywords and list of IPs but, in BIND configuration, it builds global [Access Control lists](https://bind9.readthedocs.io/en/latest/chapter6.html#access-control-lists), to be used in appropriate parameters, particularly in the `allow-xxx` per zone. Note that `bind9_acl` can contain not noly IPs (IPv4 and IPv6) but also network IPs ranges, ending with a / and a mask length, as well as a literal reference to recursively include another ACL. As ACLs are already defined for masters, so do not use for ACL a name you already used in a masters' list. 
 
@@ -205,20 +197,22 @@ Explicitely, you can use the following variables to configure your NS server and
 
 * `bind9_notify` can take the values `master-only`, `explicit`, `yes` or `no`. It defines the defaut behavior for notification, wich is set in [`options` section](templates/strict_authoritative/bind/named.conf.options.j2#L41). Letting `bind9_notify` undefined doesn't set the directive and therefore leads to BIND's default behavior, i.e. `notify: yes`. We don't want to overwrite BIND's default behavior, but for most purposes of these templates, we recommend to set notify to `master-only`. 
 
-* `bind9_also_notify` is a list that defines the global `also-noitfy`. As such, it can contain IPs or masters' lists, that can be set with the variables `bind9_masters` and `bind9_masters_extra` hereabove. Except if `.also_notify` or `.allow_transfer` is explicitely set for the zone, templates take advantage of the masters' lists _and_ ACLs built for `bind9_masters` and `bind9_masters_extra` to include the content of `bind9_also_notify` in the zone's `allow-transfer` directive, what would not be possible with BIND's syntax and grammar alone. Names are interpreted as masters' lists in `also-noitfy` statements and as ACLs in `allow-transfer` ones, but the templates have defined both with the same name and content. Globally or per zone, also-notify option is useful when you have hidden NS servers.
+* `bind9_also_notify` is a list that defines the global `also-noitfy`. As such, it can contain IPs or masters' lists, that can be set with the variables `bind9_masters` and `bind9_masters_extra` hereabove. Except if `.also_notify` or `.allow_transfer` is explicitely set for the zone, templates take advantage of the masters' lists _and_ ACLs built for `bind9_masters` and `bind9_masters_extra` to include the content of `bind9_also_notify` in the zone's `allow-transfer` directive, what would not be possible with BIND's syntax and grammar alone. Names are interpreted as masters' lists in `also-noitfy` clauses and as ACLs in `allow-transfer` ones, but the templates have defined both with the same name and content. Globally or per zone, also-notify option is useful when you have hidden NS servers.
 
 * `bind9_also_allow_transfer` is a variable that can contain a list of IPs, network ranges of IPs and ACL names defined with `bind9_acl`, that will be added, by default for zones we manage, to the `allow-transfer` inferred by the role, which already includes secundaries and also-notify elements, as documented hereabove. This option may be useful for some very strange configuration, where NS servers are not notified but should be allowed to transfer zones. 
 
-* `bind9_allow_transfer` is a variable that can contain a list of IPs, network ranges of IPs and ACL names, defined with `bind9_acl`. If defined, it will cancel the mechanism previously defined to include secundaries and also-notify in allow-transffer zone's statement. Except if `.allow_transfer` is defined for the zone, the content of `bind9_allow_transfer` and only this will populate the `allow-transfer` zone's statement. 
+* `bind9_allow_transfer` is a variable that can contain a list of IPs, network ranges of IPs and ACL names, defined with `bind9_acl`. If defined, it will cancel the mechanism previously defined to include secundaries and also-notify in allow-transfer zone's clause. Except if `.allow_transfer` is defined for the zone, the content of `bind9_allow_transfer` and only this will populate the `allow-transfer` zone's clause. 
 
 Zone by zone, in `bind9_zones_static` as well as in `bind9_zones_dynamic` list's elements, the following zone configuration parameters can be defined: 
 
 * `.allow-query`: a list of IPs and/or acls to restrict the clients that can ask for the zone. Default value is `any`. (breaks the internet if you publish an NS record: use with care, only for private zones)
-* `.notify`: `explicit`, `yes` or `no` (`master-only` has no really useful for a single zone). Sets notification behavior for the zone,
+* `.type`: that defines de BIND9 type of zone: `master`, `slave`, `forward`, `stub`
+* `.masters`: can be defined for the zones we are slave for. You can put there anything that BIND9 accepts but, to take advantage of this role to avoid data duplication, we recommend to declare all your NS hosts in `bind9_masters` and `bind9_masters_extra`, and reference them by name.
 * `.slaves`: can be defined for zones we are master for. It has a similar structure than `bind9_slaves`, that it will overwrite for the zone. The hosts it contains will be allowed for transfer, except if the parameter `.allow_transfer` hereafter is defined. 
+* `.notify`: `explicit`, `yes` or `no` (`master-only` has no really useful for a single zone). Sets notification behavior for the zone,
 * `.also_notify`: can be defined zone by zone we are master for, with a similar structure than `bind9_also_notify`, that it will overwrite for the zone. and the hosts it contains will be allowed for transfer, except if the parameter `.allow_transfer` hereafter is defined. 
 * `.also_allow_transfer`: is a list similar to an ACL, that will overwrite `bind9_also_allow_transfer` if defined, wich will be added to the `allow-transfer` statement content inferred by the role as described hereabove.
-* `.allow_transfer`: is a list similar to an ACL, that will overwrite `bind9_allow_transfer` for the zone. Its content and only this will populate the `allow-transfer` zone's statement.
+* `.allow_transfer`: is a list similar to an ACL, that will overwrite `bind9_allow_transfer` for the zone. Its content and only this will populate the `allow-transfer` zone's clause.
 
 Finally, note that this set of templates no longer uses several variables that use the default templets, such as `bind9_recursor` or `bind9_our_neighbors`, for instance. However, `bind9_authoritative`, whilst not used in the templates is tested by the role as conditionnal of several tasks. Therefore, it _must_ be set to true (as does de defaults' definition). 
 
