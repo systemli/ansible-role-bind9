@@ -7,11 +7,36 @@ bind9_group: bind
 # Listen on IPv6 interfaces
 bind9_ipv6: yes
 
+# bind9_templates: Directory for bind9 files templates
+# The role can handle different sets of templates for bind and zones configuration.
+# It presently proposes two sets of templates:
+#
+# * the defaults one, "", wich is a general purpose configuration set, that has evolved with the role.
+#   It's files live in {{ role_path }}/templates/ directory
+# * a second new set for a strict authoritative bind NS server: `strict_authoritative` It accepts DNS queries
+#   only for zones it is authoritative for. Templates try to be smart: `allow-transfer` for secunday NS servers
+#   and `notify-also` for hidden slaves are automatically set, and can be overwitten zone by zone, as well as
+#   `allow-query` and `notify` clauses. 
+#   It's files live in {{ role_path }}/templates/strict_authoritative/ directory
+#   Note that several default variables `bind9_*` have different meanings than with default templates' set.   
+#
+# bind9_templates must be set as an absolute directory or relative to the `templates` directory of the role, and 
+# must include it's trailing "/". For instance, for the `strict_authoritative` set of templates, you can define: 
+#
+#   bind9_templates: strict_authoritative/
+#
+# You can design and set your own templates (PRs welcome!), for example with:
+# bind9_templates: "{{ playbook_dir }}/host_vars/<my_host>/templates/"
+bind9_templates: ""
+
 # Run bind as a DNS recursor?
+# variable used only by default templates, not strict_authoritative
 bind9_recursor: no
 
 # Run bind as authoritative nameserver?
-bind9_authoritative: no
+# variable used by default templates and as conditionnal of several tasks
+# If using `strict_authoritative/` templates, this variable _must_ be true
+bind9_authoritative: "{{ true if bind9_templates == 'strict_authoritative/' else false }}"
 
 # run bind with forwarding?
 bind9_forward: no
@@ -35,12 +60,17 @@ bind9_notify_explicit: no
 # Default zone type
 bind9_zone_type: master
 
+## //!\\ Several of the following variables have different meanings or (no meaning at all) depending on the templates' set you use
+## See here after bind9_template variable. 
+
 # Permitted hosts/networks for recursion (when configured as recursor)
+# variable used only by default templates, not strict_authoritative
 bind9_our_networks:
   - localhost
   - localnets
 
 # Permitted hosts/networks for zone transfers
+# variable used only by default templates, not strict_authoritative
 bind9_our_neighbors:
   - localhost
   - localnets
@@ -49,21 +79,53 @@ bind9_our_neighbors:
 bind9_rndc_algorithm: hmac-md5
 # bind9_rndc_key:
 
-# Global primaries for all zones (if configured as secondary)
-# bind9_masters:
-#  - name: ns-primary
-#    addresses:
-#      - 1.2.3.4
+# Global primaries for all zones (if configured as secondary), default masters if not defined in the zone
+#   bind9_masters:
+#    - name: ns-primary
+#      addresses:
+#        - 1.2.3.4
 
-# Primaries for particular zones (if configured as secondary)
-# bind9_masters_extra:
-#  - name: ns-primary
-#    addresses:
-#      - 1.2.3.4
+# Primaries for particular zones (if configured as secondary), that can also be used in also-notify directives
+#   bind9_masters_extra:
+#    - name: "ns-primary"
+#      addresses:
+#        - 1.2.3.4
+#    - name: ...
+#      addresses:
+#      - ...
 
-# Global secondaries for all zones (if configured as primary)
-# bind9_slaves:
-#  - 1.2.3.4
+# Note that the role wil create masters lists _as well as_ ACLs for each element of `bind9_masters` and `bind9_masters_extra`
+# allowing the magic to be able to put the same _names_ in the following parameters
+
+# Global secondaries for all zones (if configured as primary), default slaves if not specifically defined for the zone
+#   bind9_slaves:
+#   - 1.2.3.4
+#   - ns-primary 
+#   - ...
+# This variable, that can be overwritten zone by zone (see README) is mainly used to build the `allow-transfer` clause of
+# each zone. 
+# Notice that we set here the name `ns-primary` defined above. This wouldn't be possible in BIND9 configuration, if 
+# `ns-primary` is a masters list. Here, for slaves, i.e. to set `allow-transfer` at the masters level, we are in fact
+# referring to the ACL weith the same name. 
+
+# bind9_acl: 
+# undefined by default, this variable allows to define a set of access control lists (ACL) to use in slaves, allow-query
+# or allow-transfer definitions. In YAML, `bind9_acl` has the same format as `bind9_masters`, except that, morover IPs, it can
+# contain networks definitions (IP/MASK).
+
+## The following variables are default values for all zones, that can be overwritten zone by zone. 
+
+# bind9_also_notify:
+# undefined by default, a list of IPs or masters lists that defines the global `also-notify` clause in configuration. 
+# By default, `bind9_also_notify` items are automatically included in `allow-transfer` clause in each zone. 
+
+# bind9_also_allow_transfer:
+# As stated above, by default, slaves and also-notify hosts are automatically included in the allow-transfer clauses of zones.
+# You can define here any _additional_ IP or ACL you would like, by default, to also allow transfer. 
+
+# bind9_allow_transfer: 
+# Defining this variables bypasses the previous mechanism of including slaves and also-notify hosts in the allow-transfer clause
+# of the zone in its master servers, and sets the `allow-transfer` to its content.
 
 # Enable BIND's XML statistics-channels (for monitoring purposes)
 bind9_statistics_enabled: False
@@ -74,6 +136,11 @@ bind9_statistics_enabled: False
 # bind9_zone_static:  zone files copied from `files/bind/zones/`
 bind9_zones_dynamic: []
 bind9_zones_static: []
+
+# With this value, the `copy` module will look for zone files in `files/bind/zones/` in the playbook directory
+bind9_zone_files: bind/zones/
+# Overwrite, for instance if you want to put your db.* zone files in your host vars: 
+# bind9_zone_files: '{{ playbook_dir }}/host_vars/{{ ansible_hostname }}/files/bind/zones/'
 
 # Authoritative include files
 bind9_authoritative_includes: []
@@ -110,12 +177,6 @@ bind9_monit_enabled: no
 bind9_packages:
   - bind9
   - dnsutils
-
-# Directory for bind9 files templates
-bind9_templates: ""
-# The default value takes templates form the {{ role_path }}/templates/ directory of the role
-# You can set your own templates, for example with:
-# bind9_templates: "{{ playbook_dir }}/host_vars/<my_host>/templates/"
 
 # Logging
 bind9_named_logging: False

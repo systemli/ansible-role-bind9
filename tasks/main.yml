@@ -16,7 +16,7 @@
   notify:
     - restart bind9
 
-- name: Setup logs
+- name: bind9 logs configuration
   block:
     - name: ensure existence of the log directory
       file:
@@ -144,6 +144,19 @@
     - item.type|default(bind9_zone_type) == 'master'
     - item.update_keyfile|default()
 
+- name: view zones  
+  debug:
+    var: item
+    verbosity: 2
+  with_items:
+    - '{{ bind9_zones_dynamic | union( bind9_zones_static ) }}'
+  when:
+    - bind9_authoritative|default()
+    - bind9_dnssec|default() or item.dnssec|default(bind9_dnssec_zones_default_enabled)
+    - item.dnssec|default(bind9_dnssec_zones_default_enabled)
+  tags:
+    - role:bind9:dnssec
+
 # TODO: DNSSEC: implement key rollover
 - name: determine if DNSSEC keys for zones already exist
   find:
@@ -151,7 +164,7 @@
     patterns: "K{{ item.name }}.+008+*"
   register: bind9_reg_dnssec_keys_tmp
   with_items:
-    - "{{ bind9_zones_dynamic }} + {{ bind9_zones_static }}"
+    - '{{ bind9_zones_dynamic | union( bind9_zones_static ) }}'
   when:
     - bind9_authoritative|default()
     - bind9_dnssec|default() or item.dnssec|default(bind9_dnssec_zones_default_enabled)
@@ -160,7 +173,7 @@
     - role:bind9:dnssec
 
 # Filter out all skipped results (e.g. if item.dnssec is set to False)
-- name: Set bind9_reg_dnssec_keys
+- name: set bind9_reg_dnssec_keys fact
   set_fact:
     bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results|selectattr('skipped', 'undefined')|list }}"
 
@@ -315,7 +328,7 @@
 
 - name: install static bind9 zone files
   copy:
-    src: bind/zones/db.{{ item.name }}
+    src: '{{ bind9_zone_files }}db.{{ item.name }}'
     dest: /etc/bind/zones/db.{{ item.name }}
     owner: root
     group: "{{ bind9_group }}"
