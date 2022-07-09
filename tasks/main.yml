@@ -124,7 +124,7 @@
     group: "{{ bind9_group }}"
     mode: 0644
   with_items:
-    - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
+    - "{{ bind9_zones_static + bind9_zones_dynamic }}"
   when:
     - bind9_authoritative|default()
     - item.type|default(bind9_zone_type) == 'master'
@@ -138,7 +138,7 @@
     group: "{{ bind9_group }}"
     mode: 0600
   with_items:
-    - "{{ bind9_zones_static }} + {{ bind9_zones_dynamic }}"
+    - "{{ bind9_zones_static + bind9_zones_dynamic }}"
   when:
     - bind9_authoritative|default()
     - item.type|default(bind9_zone_type) == 'master'
@@ -151,7 +151,7 @@
     patterns: "K{{ item.name }}.+008+*"
   register: bind9_reg_dnssec_keys_tmp
   with_items:
-    - "{{ bind9_zones_dynamic }} + {{ bind9_zones_static }}"
+    - "{{ bind9_zones_dynamic + bind9_zones_static }}"
   when:
     - bind9_authoritative|default()
     - bind9_dnssec|default() or item.dnssec|default(bind9_dnssec_zones_default_enabled)
