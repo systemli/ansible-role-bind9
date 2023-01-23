@@ -1,20 +1,20 @@
 ---
 
-- name: restart bind9
+- name: Restart bind9
   service:
     name: bind9
     state: restarted
 
-- name: reload bind9
+- name: Reload bind9
   service:
     name: bind9
     state: reloaded
 
-- name: restart monit
+- name: Restart monit
   service:
     name: monit
     state: restarted
 
-- name: zone file change
+- name: Zone file change
   debug:
     msg: "dummy handler"

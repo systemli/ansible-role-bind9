@@ -1,6 +1,6 @@
 ---
 
-- name: ensure monit configs are present
+- name: Ensure monit configs are present
   copy:
     src: "monit/conf.d/{{ item }}"
     dest: "/etc/monit/conf.d/{{ item }}"
@@ -9,4 +9,4 @@
     mode: 0600
   with_items:
     - bind9
-  notify: restart monit
+  notify: Restart monit

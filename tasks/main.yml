@@ -1,12 +1,12 @@
 ---
 
-- name: install bind9 packages
+- name: Install bind9 packages
   apt:
     pkg: "{{ bind9_packages }}"
     state: present
     cache_valid_time: 600
 
-- name: copy bind9 defaults file
+- name: Copy bind9 defaults file
   template:
     src: "{{ bind9_templates | default('') }}bind/default.j2"
     dest: /etc/default/bind9
@@ -14,11 +14,12 @@
     group: root
     mode: 0644
   notify:
-    - restart bind9
+    - Restart bind9
 
 - name: Setup logs
+  when: bind9_named_logging
   block:
-    - name: ensure existence of the log directory
+    - name: Ensure existence of the log directory
       file:
         path: "{{ bind9_log_path }}"
         state: directory
@@ -26,16 +27,15 @@
         group: "{{ bind9_group }}"
         mode: 0755
 
-    - name: configure log rotate for bind9
+    - name: Configure log rotate for bind9
       template:
         src: "{{ bind9_templates | default('') }}logrotate.d/bind.j2"
         dest: /etc/logrotate.d/bind
         owner: root
         group: "{{ bind9_group }}"
         mode: 0644
-  when: bind9_named_logging
 
-- name: configure bind9 named.conf files
+- name: Configure bind9 named.conf files
   template:
     src: "{{ bind9_templates | default('') }}bind/{{ item }}.j2"
     dest: /etc/bind/{{ item }}
@@ -46,11 +46,11 @@
     - named.conf.local
     - named.conf.options
   notify:
-    - reload bind9
+    - Reload bind9
   # Variable register for eventual use outside the role
   register: bind9_named_conf
 
-- name: check validity of named.conf
+- name: Check validity of named.conf
   command: named-checkconf
   register: bind9_reg_named_checkconf
   become: true
@@ -59,25 +59,25 @@
   vars:
     ansible_ssh_pipelining: True
 
-- name: create bind9 directory for master zones
+- name: Create bind9 directory for master zones
   file:
     path: /etc/bind/zones
     state: directory
     owner: root
     group: "{{ bind9_group }}"
     mode: 02775
-  when: bind9_authoritative|default()
+  when: bind9_authoritative | default()
 
-- name: create bind9 directory for master zone includes
+- name: Create bind9 directory for master zone includes
   file:
     path: /etc/bind/zones/includes
     state: directory
     owner: root
     group: "{{ bind9_group }}"
     mode: 0755
-  when: bind9_authoritative|default()
+  when: bind9_authoritative | default()
 
-- name: install bind9 authoritative include files
+- name: Install bind9 authoritative include files
   template:
     src: "bind/zones/includes/{{ item }}.j2"
     dest: "/etc/bind/zones/includes/{{ item }}"
@@ -85,38 +85,38 @@
     group: "{{ bind9_group }}"
     mode: 0644
   with_items: "{{ bind9_authoritative_includes }}"
-  when: bind9_authoritative|default()
+  when: bind9_authoritative | default()
   notify:
-    - zone file change
-    - reload bind9
+    - Zone file change
+    - Reload bind9
 
-- name: install bind9 rndc key
+- name: Install bind9 rndc key
   template:
     src: "{{ bind9_templates | default('') }}bind/rndc.key.j2"
     dest: /etc/bind/rndc.key
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: 0640
-  when: bind9_rndc_key|default()
+  when: bind9_rndc_key | default()
   notify:
-    - restart bind9
+    - Restart bind9
   tags:
     - role:bind9:rndc_key
 
-- name: create bind9 directory for keys
+- name: Create bind9 directory for keys
   file:
     path: /etc/bind/keys
     state: directory
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: 02750
-  when: bind9_authoritative|default()
+  when: bind9_authoritative | default()
   tags:
     - role:bind9:ddns
     - role:bind9:dnssec
 
 # TODO: DDNS: move keys into vault file
-- name: copy over DDNS keys for zones with update_keyfile
+- name: Copy over DDNS keys for zones with update_keyfile
   copy:
     src: bind/zones/{{ item.update_keyfile }}.key
     dest: /etc/bind/keys/{{ item.update_keyfile }}.key
@@ -126,11 +126,11 @@
   with_items:
     - "{{ bind9_zones_static + bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|default()
-    - item.type|default(bind9_zone_type) == 'master'
-    - item.update_keyfile|default()
+    - bind9_authoritative | default()
+    - item.type | default(bind9_zone_type) == 'master'
+    - item.update_keyfile | default()
 
-- name: copy over DDNS private keys for zones with update_keyfile
+- name: Copy over DDNS private keys for zones with update_keyfile
   copy:
     src: bind/zones/{{ item.update_keyfile }}.private
     dest: /etc/bind/keys/{{ item.update_keyfile }}.private
@@ -140,12 +140,12 @@
   with_items:
     - "{{ bind9_zones_static + bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|default()
-    - item.type|default(bind9_zone_type) == 'master'
-    - item.update_keyfile|default()
+    - bind9_authoritative | default()
+    - item.type | default(bind9_zone_type) == 'master'
+    - item.update_keyfile | default()
 
 # TODO: DNSSEC: implement key rollover
-- name: determine if DNSSEC keys for zones already exist
+- name: Determine if DNSSEC keys for zones already exist
   find:
     paths: /etc/bind/keys
     patterns: "K{{ item.name }}.+008+*"
@@ -153,18 +153,18 @@
   with_items:
     - "{{ bind9_zones_dynamic + bind9_zones_static }}"
   when:
-    - bind9_authoritative|default()
-    - bind9_dnssec|default() or item.dnssec|default(bind9_dnssec_zones_default_enabled)
-    - item.dnssec|default(bind9_dnssec_zones_default_enabled)
+    - bind9_authoritative | default()
+    - bind9_dnssec | default() or item.dnssec | default(bind9_dnssec_zones_default_enabled)
+    - item.dnssec | default(bind9_dnssec_zones_default_enabled)
   tags:
     - role:bind9:dnssec
 
 # Filter out all skipped results (e.g. if item.dnssec is set to False)
 - name: Set bind9_reg_dnssec_keys
   set_fact:
-    bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results|selectattr('skipped', 'undefined')|list }}"
+    bind9_reg_dnssec_keys: "{{ bind9_reg_dnssec_keys_tmp.results | selectattr('skipped', 'undefined') | list }}"
 
-- name: generate bind9 key signing keys for zones
+- name: Generate bind9 key signing keys for zones
   command: dnssec-keygen -a RSASHA256 -b 4096 -n ZONE -f KSK {{ item.item.name }}
   args:
     chdir: /etc/bind/keys
@@ -173,15 +173,15 @@
   become_user: "{{ bind9_user }}"
   with_items: "{{ bind9_reg_dnssec_keys }}"
   when:
-    - bind9_authoritative|default()
-    - bind9_dnssec|default()
+    - bind9_authoritative | default()
+    - bind9_dnssec | default()
     - item.matched < 2
   notify:
-    - reload bind9
+    - Reload bind9
   tags:
     - role:bind9:dnssec
 
-- name: generate bind9 zone signing keys for zones
+- name: Generate bind9 zone signing keys for zones
   command: dnssec-keygen -a RSASHA256 -b 2048 -n ZONE {{ item.item.name }}
   args:
     chdir: /etc/bind/keys
@@ -190,35 +190,35 @@
   become_user: "{{ bind9_user }}"
   with_items: "{{ bind9_reg_dnssec_keys }}"
   when:
-    - bind9_authoritative|default()
-    - bind9_dnssec|default()
+    - bind9_authoritative | default()
+    - bind9_dnssec | default()
     - item.matched < 2
   notify:
-    - reload bind9
+    - Reload bind9
   tags:
     - role:bind9:dnssec
 
-- name: read in key signing keys from key files (DNSKEY)
+- name: Read in key signing keys from key files (DNSKEY)
   command: "grep 'IN DNSKEY' /etc/bind/keys/{{ item.stdout }}.key"
   register: bind9_reg_ksk
   changed_when: false
   with_items: "{{ bind9_reg_keygen_ksk.results }}"
   when:
-    - bind9_authoritative|default()
-    - bind9_dnssec|default()
-    - item.changed|default()
+    - bind9_authoritative | default()
+    - bind9_dnssec | default()
+    - item.changed | default()
   tags:
     - role:bind9:dnssec
 
-- name: generate DS records from key signing keys
+- name: Generate DS records from key signing keys
   command: "dnssec-dsfromkey -2 /etc/bind/keys/{{ item.stdout }}.key"
   register: bind9_reg_ksk_ds
   changed_when: false
   with_items: "{{ bind9_reg_keygen_ksk.results }}"
   when:
-    - bind9_authoritative|default()
-    - bind9_dnssec|default()
-    - item.changed|default()
+    - bind9_authoritative | default()
+    - bind9_dnssec | default()
+    - item.changed | default()
   tags:
     - role:bind9:dnssec
 
@@ -234,14 +234,14 @@
     - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
-    - bind9_dnssec|default()
-    - item.0.item.changed|default()
+    - bind9_dnssec | default()
+    - item.0.item.changed | default()
     - bind9_dnssec_notify_xmpp or bind9_dnssec_notify_matrix
   tags:
     - role:bind9:dnssec
 
-- name: send KSK in DNSSEC and DS format over XMPP
-  jabber:
+- name: Send KSK in DNSSEC and DS format over XMPP
+  community.general.jabber:
     user: "{{ bind9_dnssec_notify_xmpp_user }}"
     password: "{{ bind9_dnssec_notify_xmpp_password }}"
     to: "{{ bind9_dnssec_notify_xmpp_rcpt }}"
@@ -253,8 +253,8 @@
     - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
-    - bind9_dnssec|default()
-    - item.0.item.changed|default()
+    - bind9_dnssec | default()
+    - item.0.item.changed | default()
     - bind9_dnssec_notify_xmpp
   tags:
     - role:bind9:dnssec
@@ -269,8 +269,8 @@
     - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
-    - bind9_dnssec|default()
-    - item.0.item.changed|default()
+    - bind9_dnssec | default()
+    - item.0.item.changed | default()
     - bind9_dnssec_notify_matrix
   tags:
     - role:bind9:dnssec
@@ -280,7 +280,7 @@
   uri:
     url: "{{ bind9_matrix_notifier_url }}"
     method: POST
-    body: "{{ bind9_matrix_notifier_body|to_nice_json }}"
+    body: "{{ bind9_matrix_notifier_body | to_nice_json }}"
     status_code: 200
     body_format: json
   ignore_errors: "{{ ansible_check_mode }}"
@@ -289,14 +289,14 @@
     - "{{ bind9_reg_ksk_ds.results }}"
   when:
     - bind9_authoritative
-    - bind9_dnssec|default()
-    - item.0.item.changed|default()
+    - bind9_dnssec | default()
+    - item.0.item.changed | default()
     - bind9_dnssec_notify_matrix
   tags:
     - role:bind9:dnssec
 
 
-- name: create dynamic bind9 zone files
+- name: Create dynamic bind9 zone files
   template:
     src: "{{ bind9_templates | default('') }}bind/zones/db.template.j2"
     dest: /etc/bind/zones/db.{{ item.name }}
@@ -305,33 +305,33 @@
     mode: 0644
   with_items: "{{ bind9_zones_dynamic }}"
   when:
-    - bind9_authoritative|default()
-    - item.type|default(bind9_zone_type) == 'master'
+    - bind9_authoritative | default()
+    - item.type | default(bind9_zone_type) == 'master'
   notify:
-    - zone file change
-    - reload bind9
+    - Zone file change
+    - Reload bind9
   tags:
     - role:bind9:zones
 
-- name: install static bind9 zone files
+- name: Install static bind9 zone files
   copy:
     src: bind/zones/db.{{ item.name }}
     dest: /etc/bind/zones/db.{{ item.name }}
     owner: root
     group: "{{ bind9_group }}"
     mode: 0644
-    force: "{{ item.force_update|default('yes') }}"
+    force: "{{ item.force_update | default('yes') }}"
   with_items: "{{ bind9_zones_static }}"
   when:
-    - bind9_authoritative|default()
-    - item.type|default(bind9_zone_type) == 'master'
+    - bind9_authoritative | default()
+    - item.type | default(bind9_zone_type) == 'master'
   notify:
-    - zone file change
-    - reload bind9
+    - Zone file change
+    - Reload bind9
   tags:
     - role:bind9:zones
 
-- name: check validity of zone files
+- name: Check validity of zone files
   command: named-checkzone {{ item.name }} /etc/bind/zones/db.{{ item.name }}
   register: bind9_reg_named_checkzone
   become: true
@@ -339,10 +339,11 @@
   with_items:
     - "{{ bind9_zones_dynamic }}"
     - "{{ bind9_zones_static }}"
-  when: item.type|default(bind9_zone_type) == 'master'
+  when: item.type | default(bind9_zone_type) == 'master'
   changed_when: False
   vars:
     ansible_ssh_pipelining: True
 
-- import_tasks: monit.yml
-  when: bind9_monit_enabled|default()
+- name: Import monit tasks
+  import_tasks: monit.yml
+  when: bind9_monit_enabled | default()
