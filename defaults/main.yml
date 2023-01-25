@@ -137,3 +137,5 @@ bind9_log_categories:
     destination: bind_log
   - name: lame-servers
     destination: 'null'
+
+bind9_zonedir: /var/lib/bind/zones
