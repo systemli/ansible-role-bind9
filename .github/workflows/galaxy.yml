@@ -11,6 +11,7 @@ jobs:
   galaxy:
     name: Ansible Galaxy
     uses: systemli/github-ansible-workflow/.github/workflows/ansible-galaxy-workflow.yaml@main
+    with:
+      git-branch: ${{ github.ref_name }}
     secrets:
       galaxy-token: ${{ secrets.galaxy_api_key }}
-      git-branch: ${{ env.GITHUB_REF_NAME }}
