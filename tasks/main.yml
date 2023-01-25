@@ -38,7 +38,7 @@
 - include_tasks: create_ddns_keys.yml
   with_items:
     - "{{ bind9_zones_static + bind9_zones_dynamic }}"
-    
+
 - name: Configure bind9 named.conf files
   template:
     src: "{{ bind9_templates | default('') }}bind/{{ item }}.j2"

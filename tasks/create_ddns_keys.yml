@@ -4,14 +4,14 @@
   stat:
     path: bind/zones/{{ item.update_keyfile }}.private
   register: update_keyfile_tmp
-  when: item.update_keyfile | d(false)
+  when: item.update_keyfile is defined
 
 - name: generate DDNS key
   shell: "tsig-keygen -a {{ item.update_key_algorithm | d('hmac-sha512') }} {{ item.name }}_{{ item.update_keyfile }}_update > /etc/bind/keys/{{ item.update_keyfile }}.private"
   args:
     chdir: "{{ bind9_zonedir }}"
   register: ddns_key
-  when: not update_keyfile_tmp.stat.exists
+  when: item.update_keyfile is defined and not update_keyfile_tmp.stat.exists
 
 - name: copy DDNS key to control host
   fetch:
