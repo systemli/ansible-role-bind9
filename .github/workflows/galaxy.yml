@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-  release:
+    tags:
+      - "*"
 
 jobs:
   galaxy:
@@ -12,3 +13,4 @@ jobs:
     uses: systemli/github-ansible-workflow/.github/workflows/ansible-galaxy-workflow.yaml@main
     secrets:
       galaxy-token: ${{ secrets.galaxy_api_key }}
+      git-branch: ${{ env.GITHUB_REF_NAME }}
