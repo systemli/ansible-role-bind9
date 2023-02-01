@@ -2,7 +2,7 @@
   become: false
   delegate_to: localhost
   stat:
-    path: bind/zones/{{ item.update_keyfile }}.private
+    path: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
   register: update_keyfile_tmp
   when: item.update_keyfile is defined
 
@@ -16,7 +16,7 @@
 - name: copy DDNS key to control host
   fetch:
     src: "/etc/bind/keys/{{ item.update_keyfile }}.private"
-    dest: bind/zones/{{ item.update_keyfile }}.private
+    dest: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
     flat: true
   when: ddns_key.changed
 
@@ -24,6 +24,6 @@
   become: false
   delegate_to: localhost
   file:
-    path: bind/zones/{{ item.update_keyfile }}.key
+    path: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.key"
     state: touch
   when: ddns_key.changed

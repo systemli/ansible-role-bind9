@@ -109,6 +109,30 @@ And similarly `zone_my_reverse_inaddr_arpa` and `zone_my_reverse_ip6_arpa` for I
 
 * deploy role to your servers
 
+### DDNS updates
+
+## Key generation
+
+If you want to have your DDNS keys created by this role configure `bind9_generate_ddns_key`:
+
+```yaml
+-  bind9_generate_ddns_key: true
+```
+
+Keys will by default be stored to `files/bind/zones` withinin your playbook location, but you can customize this with `bind9_local_keydir`
+
+```yaml
+-  bind9_local_keydir: true
+```
+
+## Zone database
+
+Please note that for DDNS updates to work, the location of the zone files needs to be writable by the BIND process.
+Linux distros with Mandatory Access Control (Apparmor, SELinux) ususally don't allow writing to the default `/etc/bind/zones` path. In order to circumvent this you may want to change the zone files location to `/var/lib/bind/zones` instead:
+
+```yaml
+-  bind9_zonedir: /var/lib/bind/zones
+```
 
 ## Dependencies
 
