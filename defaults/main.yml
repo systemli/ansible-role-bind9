@@ -137,3 +137,7 @@ bind9_log_categories:
     destination: bind_log
   - name: lame-servers
     destination: 'null'
+
+bind9_generate_ddns_key: true
+bind9_zonedir: /etc/bind/zones
+bind9_local_keydir: files/bind/zones

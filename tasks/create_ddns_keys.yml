@@ -1,0 +1,29 @@
+- name: determine if DDNS key already exists
+  become: false
+  delegate_to: localhost
+  stat:
+    path: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
+  register: update_keyfile_tmp
+  when: item.update_keyfile is defined
+
+- name: generate DDNS key
+  shell: "tsig-keygen -a {{ item.update_key_algorithm | d('hmac-sha512') }} {{ item.name }}_{{ item.update_keyfile }}_update > /etc/bind/keys/{{ item.update_keyfile }}.private"
+  args:
+    chdir: "{{ bind9_zonedir }}"
+  register: ddns_key
+  when: item.update_keyfile is defined and not update_keyfile_tmp.stat.exists
+
+- name: copy DDNS key to control host
+  fetch:
+    src: "/etc/bind/keys/{{ item.update_keyfile }}.private"
+    dest: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
+    flat: true
+  when: ddns_key.changed
+
+- name: create dummy DDNS public key file on control host
+  become: false
+  delegate_to: localhost
+  file:
+    path: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.key"
+    state: touch
+  when: ddns_key.changed

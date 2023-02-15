@@ -35,6 +35,11 @@
         group: "{{ bind9_group }}"
         mode: 0644
 
+- include_tasks: create_ddns_keys.yml
+  with_items:
+    - "{{ bind9_zones_static + bind9_zones_dynamic }}"
+  when: bind9_generate_ddns_key | bool
+
 - name: Configure bind9 named.conf files
   template:
     src: "{{ bind9_templates | default('') }}bind/{{ item }}.j2"
@@ -61,7 +66,7 @@
 
 - name: Create bind9 directory for master zones
   file:
-    path: /etc/bind/zones
+    path: "{{ bind9_zonedir }}"
     state: directory
     owner: root
     group: "{{ bind9_group }}"
@@ -70,7 +75,7 @@
 
 - name: Create bind9 directory for master zone includes
   file:
-    path: /etc/bind/zones/includes
+    path: "{{ bind9_zonedir }}/includes"
     state: directory
     owner: root
     group: "{{ bind9_group }}"
@@ -80,7 +85,7 @@
 - name: Install bind9 authoritative include files
   template:
     src: "bind/zones/includes/{{ item }}.j2"
-    dest: "/etc/bind/zones/includes/{{ item }}"
+    dest: "{{ bind9_zonedir }}/includes/{{ item }}"
     owner: root
     group: "{{ bind9_group }}"
     mode: 0644
@@ -299,7 +304,7 @@
 - name: Create dynamic bind9 zone files
   template:
     src: "{{ bind9_templates | default('') }}bind/zones/db.template.j2"
-    dest: /etc/bind/zones/db.{{ item.name }}
+    dest: "{{ bind9_zonedir }}/db.{{ item.name }}"
     owner: root
     group: "{{ bind9_group }}"
     mode: 0644
@@ -316,7 +321,7 @@
 - name: Install static bind9 zone files
   copy:
     src: bind/zones/db.{{ item.name }}
-    dest: /etc/bind/zones/db.{{ item.name }}
+    dest: "{{ bind9_zonedir }}/db.{{ item.name }}"
     owner: root
     group: "{{ bind9_group }}"
     mode: 0644
@@ -331,8 +336,8 @@
   tags:
     - role:bind9:zones
 
-- name: Check validity of zone files
-  command: named-checkzone {{ item.name }} /etc/bind/zones/db.{{ item.name }}
+- name: check validity of zone files
+  command: named-checkzone {{ item.name }} {{ bind9_zonedir }}/db.{{ item.name }}
   register: bind9_reg_named_checkzone
   become: true
   become_user: "{{ bind9_user }}"

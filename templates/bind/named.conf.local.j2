@@ -37,7 +37,7 @@ statistics-channels {
 zone "{{ zone.name }}" {
     type {{ zone_type }};
 {%   if zone_type == 'master' %}
-    file "/etc/bind/zones/db.{{ zone.name }}";
+    file "{{ bind9_zonedir }}/db.{{ zone.name }}";
 {%     if bind9_notify_explicit|default() %}
     notify explicit;
 {%     elif zone.notify|default(true) %}
