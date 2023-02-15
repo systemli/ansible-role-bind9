@@ -122,7 +122,7 @@ If you want to have your DDNS keys created by this role configure `bind9_generat
 Keys will by default be stored to `files/bind/zones` withinin your playbook location, but you can customize this with `bind9_local_keydir`
 
 ```yaml
--  bind9_local_keydir: true
+-  bind9_local_keydir: credentials/bind
 ```
 
 ## Zone database
