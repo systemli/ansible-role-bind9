@@ -35,6 +35,29 @@
         group: "{{ bind9_group }}"
         mode: 0644
 
+- name: Check if AppArmor enabled
+  become: true
+  shell: aa-enabled
+  register: app_armor
+  ignore_errors: true
+
+- name: Extend AppArmor profile
+  become: true
+  shell: |
+    APP_ARMOR_LOCAL_HOME="/etc/apparmor.d/local"
+    FILE_NAME=$(which named | sed 's/\//./2g')
+    cat << EOF > "${APP_ARMOR_LOCAL_HOME}/${FILE_NAME}"
+    {{ bind9_log_path }}/** rw,
+    {{ bind9_log_path }}/ rw,
+    EOF
+  when: app_armor.stdout == "Yes"
+
+- name: Reload service apparmor
+  ansible.builtin.service:
+    name: apparmor
+    state: reloaded
+  when: app_armor.stdout == "Yes"
+
 - name: Create dynamic DNS keys
   include_tasks: create_ddns_keys.yml
   with_items:
