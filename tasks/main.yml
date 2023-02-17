@@ -35,7 +35,8 @@
         group: "{{ bind9_group }}"
         mode: 0644
 
-- include_tasks: create_ddns_keys.yml
+- name: Create dynamic DNS keys
+  include_tasks: create_ddns_keys.yml
   with_items:
     - "{{ bind9_zones_static + bind9_zones_dynamic }}"
   when: bind9_generate_ddns_key | bool
@@ -336,7 +337,7 @@
   tags:
     - role:bind9:zones
 
-- name: check validity of zone files
+- name: Check validity of zone files
   command: named-checkzone {{ item.name }} {{ bind9_zonedir }}/db.{{ item.name }}
   register: bind9_reg_named_checkzone
   become: true
