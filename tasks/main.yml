@@ -61,6 +61,7 @@
         {{ bind9_log_path }}/ rw,
         EOF
       when: app_armor.stdout == "Yes"
+      changed_when: false
 
     - name: Reload service apparmor
       ansible.builtin.service:
