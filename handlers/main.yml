@@ -1,20 +1,19 @@
 ---
-
 - name: Restart bind9
-  service:
+  ansible.builtin.service:
     name: bind9
     state: restarted
 
 - name: Reload bind9
-  service:
+  ansible.builtin.service:
     name: bind9
     state: reloaded
 
 - name: Restart monit
-  service:
+  ansible.builtin.service:
     name: monit
     state: restarted
 
 - name: Zone file change
-  debug:
+  ansible.builtin.debug:
     msg: "dummy handler"

@@ -1,4 +1,3 @@
 ---
 skip_list:
-  - fqcn-builtins
-  - no-handler  # Tasks that run when changed should likely be handlers.
+  - no-handler # Tasks that run when changed should likely be handlers.
