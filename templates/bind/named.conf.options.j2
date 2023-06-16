@@ -16,19 +16,16 @@ options {
       {{ forwarder }};
     {% endfor %}
   };
-{% endif %}                                                                                                                                                   
+{% endif %}
 
 	//========================================================================
 	// If BIND logs error messages about the root key being expired,
 	// you will need to update your keys.  See https://www.isc.org/bind-keys
 	//========================================================================
 	dnssec-validation {{ bind9_dnssec_validation }};
-{% if ansible_distribution_major_version|int >= 11  %}
 	qname-minimization {{ bind9_qname_minimization }};
-{% endif %}
-	auth-nxdomain no;    # conform to RFC1035
-	listen-on-v6 { any; };
 
+	listen-on-v6 { any; };
 	recursion {{ bind9_recursor|default()|ternary('yes', 'no') }};
 	allow-recursion { {{ bind9_recursor|default()|ternary('our_networks', 'none') }}; };
 
