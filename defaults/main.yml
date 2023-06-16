@@ -4,9 +4,6 @@
 bind9_user: bind
 bind9_group: bind
 
-# Listen on IPv6 interfaces
-bind9_ipv6: yes
-
 # Run bind as a DNS recursor?
 bind9_recursor: no
 
