@@ -5,16 +5,6 @@
     state: present
     cache_valid_time: 600
 
-- name: Copy bind9 defaults file
-  ansible.builtin.template:
-    src: "{{ bind9_templates | default('') }}bind/default.j2"
-    dest: /etc/default/bind9
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - Restart bind9
-
 - name: Setup logs
   when: bind9_named_logging
   block:
