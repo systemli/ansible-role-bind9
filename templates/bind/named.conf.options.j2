@@ -51,7 +51,7 @@ options {
 {% if bind9_dnssec|default() %}
 
 	// Look here for DNSSEC keys
-	key-directory "/etc/bind/keys";
+	key-directory "{{ bind9_keydir }}";
 {% endif %}
 };
 

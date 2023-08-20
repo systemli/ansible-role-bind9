@@ -137,4 +137,5 @@ bind9_log_categories:
 
 bind9_generate_ddns_key: true
 bind9_zonedir: /etc/bind/zones
+bind9_keydir: /etc/bind/keys
 bind9_local_keydir: files/bind/zones
