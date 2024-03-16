@@ -139,3 +139,4 @@ bind9_generate_ddns_key: true
 bind9_zonedir: /etc/bind/zones
 bind9_keydir: /etc/bind/keys
 bind9_local_keydir: files/bind/zones
+bind9_local_static_zone_filesdir: bind/zones

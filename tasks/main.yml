@@ -311,7 +311,7 @@
 
 - name: Install static bind9 zone files
   ansible.builtin.copy:
-    src: bind/zones/db.{{ item.name }}
+    src: "{{ bind9_local_static_zone_filesdir }}/db.{{ item.name }}"
     dest: "{{ bind9_zonedir }}/db.{{ item.name }}"
     owner: root
     group: "{{ bind9_group }}"
