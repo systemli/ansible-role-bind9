@@ -100,10 +100,6 @@ bind9_matrix_notifier_body:
   displayName: "{{ bind9_matrix_notifier_display_name }}"
   avatarUrl: "{{ bind9_matrix_notifier_avatar_url }}"
 
-
-# Install monit file for bind9 named
-bind9_monit_enabled: no
-
 bind9_packages:
   - bind9
   - dnsutils

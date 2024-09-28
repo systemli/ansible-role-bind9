@@ -1,4 +1,0 @@
-check process named with pidfile /run/named/named.pid
-    start program = "/usr/sbin/service bind9 start" with timeout 60 seconds
-    stop program  = "/usr/sbin/service bind9 stop"
-    group server

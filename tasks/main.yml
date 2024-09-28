@@ -339,7 +339,3 @@
   changed_when: False
   vars:
     ansible_ssh_pipelining: True
-
-- name: Import monit tasks
-  ansible.builtin.import_tasks: monit.yml
-  when: bind9_monit_enabled | default()
