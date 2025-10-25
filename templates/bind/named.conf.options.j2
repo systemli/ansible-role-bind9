@@ -59,7 +59,7 @@ options {
 {%   for policy in bind9_dnssec_policies %}
 dnssec-policy {{ policy.name }} {
 	keys {
-{%     for key in policy.keys %}
+{%     for key in policy.dnssec_keys %}
 		{{ key }};
 {%     endfor %}
 	};
