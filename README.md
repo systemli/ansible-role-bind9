@@ -11,7 +11,6 @@ Features:
 * Extensive DNSSEC support:
   * automatic KSK and ZSK key creation
   * automatic zone DNSSEC configuration
-  * support to send DNSKEY/DS formatted output over XMPP
 * Support for hidden primary and authoritative secondary configuration
 * Support for so called "static" zones, i.e. zones defined uploading their raw .db bind file
 * Validity check of zone files with named-checkzone
@@ -133,10 +132,6 @@ Linux distros with Mandatory Access Control (Apparmor, SELinux) ususally don't a
 ```yaml
 -  bind9_zonedir: /var/lib/bind/zones
 ```
-
-## Dependencies
-
-For the XMPP notification feature, `python-xmpp` needs to be installed.
 
 ## Role varibles
 
