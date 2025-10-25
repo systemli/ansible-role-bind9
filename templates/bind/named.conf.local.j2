@@ -44,7 +44,7 @@ zone "{{ zone.name }}" {
     notify yes;
 {%     endif %}
 {%     if (bind9_dnssec|default() or zone.dnssec|default()) and zone.dnssec|default(bind9_dnssec_zones_default_enabled) %}
-{%       if zone.auto_dnssec %}
+{%       if zone.auto_dnssec|default() %}
     auto-dnssec maintain;
 {%       else %}
     dnssec-policy {{ zone.dnssec_policy|default('default') }};
