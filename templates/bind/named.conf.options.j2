@@ -55,6 +55,18 @@ options {
 {% endif %}
 };
 
+{% if bind9_dnssec_policies|default() %}
+{%   for policy in bind9_dnssec_policies %}
+dnssec-policy {{ policy.name }} {
+	keys {
+{%     for key in policy.keys %}
+		{{ key }};
+{%     endfor %}
+	};
+};
+{%   endfor %}
+{% endif %}
+
 {% if bind9_zones_static|selectattr('update_key_secret','defined')|list|default() %}
 {%   for zone in bind9_zones_static|selectattr('update_key_secret','defined')|list|default([]) %}
 {%     if zone_type|default(bind9_zone_type|default('master')) == 'master' %}

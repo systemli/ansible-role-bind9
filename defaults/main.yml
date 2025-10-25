@@ -78,28 +78,6 @@ bind9_authoritative_includes: []
 # DNSSEC is activated for all DNS zones per default
 bind9_dnssec_zones_default_enabled: true
 
-# Send DNSSEC KSK in DNSKEY and DS format over XMPP after it got created
-bind9_dnssec_notify_xmpp: no
-bind9_dnssec_notify_xmpp_user: user@jabber.example.org
-bind9_dnssec_notify_xmpp_password: insecure
-bind9_dnssec_notify_xmpp_rcpt: admin@jabber.example.org
-bind9_dnssec_notify_xmpp_host: "{{ ansible_jabber_host | default('localhost') }}"
-
-# Send DNSSEC KSK in DNSKEY and DS format over matrix webhook after it got created
-bind9_dnssec_notify_matrix: no
-bind9_matrix_notifier_url: ""
-
-bind9_matrix_notifier_format: plain
-bind9_matrix_notifier_text: ""
-bind9_matrix_notifier_display_name: Ansible
-bind9_matrix_notifier_avatar_url: https://cdn.icon-icons.com/icons2/2389/PNG/512/ansible_logo_icon_145495.png
-
-bind9_matrix_notifier_body:
-  text: "{{ bind9_matrix_notifier_text }}"
-  format: "{{ bind9_matrix_notifier_format }}"
-  displayName: "{{ bind9_matrix_notifier_display_name }}"
-  avatarUrl: "{{ bind9_matrix_notifier_avatar_url }}"
-
 bind9_packages:
   - bind9
   - dnsutils
