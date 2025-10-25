@@ -4,8 +4,10 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: bullseye64
-    box: debian/bullseye64
+  - name: debian13
+    box: debian/trixie64
+  - name: debian12
+    box: debian/bookworm64
 provisioner:
   name: ansible
   become: true
