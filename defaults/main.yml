@@ -1,5 +1,4 @@
 ---
-
 # User and group for bind
 bind9_user: bind
 bind9_group: bind
@@ -44,7 +43,7 @@ bind9_our_neighbors:
 
 # Install custom rndc.key
 bind9_rndc_algorithm: hmac-md5
-# bind9_rndc_key:
+bind9_rndc_key: ""
 
 # Global primaries for all zones (if configured as secondary)
 # bind9_masters:
@@ -91,9 +90,9 @@ bind9_templates: ""
 # Logging
 bind9_named_logging: False
 bind9_log_path: /var/log/bind
-bind9_log_severity: warning  # critical | error | warning | notice | info | debug [ level ] | dynamic
+bind9_log_severity: warning # critical | error | warning | notice | info | debug [ level ] | dynamic
 bind9_log_versions: 3
-bind9_log_size: 60m           # Time units
+bind9_log_size: 60m # Time units
 
 bind9_log_categories:
   - name: default
@@ -107,7 +106,7 @@ bind9_log_categories:
   - name: queries
     destination: bind_log
   - name: lame-servers
-    destination: 'null'
+    destination: "null"
 
 bind9_generate_ddns_key: true
 bind9_zonedir: /etc/bind/zones

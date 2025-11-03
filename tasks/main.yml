@@ -93,7 +93,7 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: "0640"
-  when: bind9_rndc_key != ''
+  when: bind9_rndc_key != ""
   notify:
     - Restart bind9
   tags:
