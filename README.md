@@ -17,11 +17,14 @@ Features:
 * Basic support for so called "dynamic" zones, i.e. defined from variables yaml variables sets
 
 ## Basic server configuration
+
 ### Master server
+
 * set vars for your master server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zones and forwarder:
+
 ```yaml
 bind9_authoritative: yes
-bind9_zones_static: 
+bind9_zones_static:
 - { name: example.com , type=master }
 bind9_forward: yes
 bind9_forward_servers:
@@ -36,6 +39,7 @@ bind9_our_neighbors:
 - slave_ip_2
 - slave_ip_3
 ```
+
 * Place your BIND zone file in ansible directory (not in role directory): `files/bind/zones/db.example.com
 
 ### Slave servers
@@ -43,7 +47,7 @@ bind9_our_neighbors:
 * set vars for your slave servers:
 
 ```yaml
-bind9_zones_static: 
+bind9_zones_static:
 - { name: example.com, type: slave }
 bind9_forward: yes
 bind9_forward_servers:
@@ -53,11 +57,14 @@ bind9_masters:
 - { name: master_name, addresses: [master_ip] }
 bind9_recursor: our_network
 ```
+
 ### Dynamic zones
+
 So called "dynamic" zones' records are defined through YAML ansible variable `bind9_zones_dynamic` which is parsed by [`bind/zones/db.template.j2`](templates/bind/zones/db.template.j2) template.
 As there can be several zones, and zone definitions can be long, zone vars are worthily defined in a different vars file, for instance `host_vars/master_name/vars/YY_zones.yml`.  `bind9_zones_dynamic` can be split in several variables, which can be defined in specific files, as in the example below.
 
 In `YY_zones.yml` we may have:
+
 ```yaml
 bind9_zones_dynamic: >
         {{ zones_my_domains
@@ -74,7 +81,9 @@ bind9_zones_static:
 - name: static_dom3.org
   type: slave
 ```
+
 And in other vars files:
+
 ```yaml
 zones_my_domains:
 # This is the variables set for my domain
@@ -86,7 +95,7 @@ zones_my_domains:
   retry: 2H
   expire: 1000H
   # NS and other pre-formatted records values must be given as full qualified domain names, with or without final dot, but not relative to the zone
-  primary: ns1.dyn_domain.org         # Optional, if you don't define it, firs NS is taken 
+  primary: ns1.dyn_domain.org         # Optional, if you don't define it, firs NS is taken
   admin: postmaster.dyn_domain.org
   ns_records:
   - ns1.dyn_domain.org
@@ -148,7 +157,7 @@ For developing and testing the role we use Github Actions, Molecule and Vagrant.
 Run local tests with:
 
 ```
-molecule test 
+molecule test
 ```
 
 ## License
@@ -157,4 +166,4 @@ This Ansible role is licensed under the GNU GPLv3.
 
 ## Author
 
-Copyright 2017-2020 systemli.org (https://www.systemli.org/)
+Copyright 2017-2020 systemli.org (<https://www.systemli.org/>)
