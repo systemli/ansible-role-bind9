@@ -152,7 +152,7 @@ Testing & Development
 Tests
 -----
 
-For developing and testing the role we use Github Actions, Molecule and Vagrant. On the local environment you can easily test the role with
+For developing and testing the role we use Github Actions, Molecule and Docker. On the local environment you can easily test the role with
 
 Run local tests with:
 
@@ -166,4 +166,4 @@ This Ansible role is licensed under the GNU GPLv3.
 
 ## Author
 
-Copyright 2017-2020 systemli.org (<https://www.systemli.org/>)
+Copyright 2017-2025 systemli.org (<https://www.systemli.org/>)

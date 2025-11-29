@@ -1,6 +1,6 @@
 options {
 	directory "/var/cache/bind";
-
+{% if bind9_forward|default() %}
 	// If there is a firewall between you and nameservers you want
 	// to talk to, you may need to fix the firewall to allow multiple
 	// ports to talk.  See http://www.kb.cert.org/vuls/id/800113
@@ -10,12 +10,11 @@ options {
 	// Uncomment the following block, and insert the addresses replacing 
 	// the all-0's placeholder.
 
-{% if bind9_forward|default() %}
-  forwarders {
-    {% for forwarder in bind9_forward_servers %}
-      {{ forwarder }};
-    {% endfor %}
-  };
+    forwarders {
+{%   for forwarder in bind9_forward_servers %}
+        {{ forwarder }};
+{%   endfor %}
+    };
 {% endif %}
 
 	//========================================================================
