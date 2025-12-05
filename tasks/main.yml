@@ -125,7 +125,7 @@
   when:
     - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
-    - item.update_keyfile != ""
+    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Copy over DDNS private keys for zones with update_keyfile
   ansible.builtin.copy:
@@ -140,7 +140,7 @@
   when:
     - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
-    - item.update_keyfile != ""
+    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Create dynamic bind9 zone files
   ansible.builtin.template:
