@@ -62,7 +62,7 @@
     owner: root
     group: "{{ bind9_group }}"
     mode: "02775"
-  when: bind9_authoritative == "yes"
+  when: bind9_authoritative
 
 - name: Create bind9 directory for master zone includes
   ansible.builtin.file:
@@ -71,7 +71,7 @@
     owner: root
     group: "{{ bind9_group }}"
     mode: "0755"
-  when: bind9_authoritative == "yes"
+  when: bind9_authoritative
 
 - name: Install bind9 authoritative include files
   ansible.builtin.template:
@@ -81,7 +81,7 @@
     group: "{{ bind9_group }}"
     mode: "0644"
   loop: "{{ bind9_authoritative_includes }}"
-  when: bind9_authoritative == "yes"
+  when: bind9_authoritative
   notify:
     - Zone file change
     - Reload bind9
@@ -106,7 +106,7 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: 02750
-  when: bind9_authoritative == "yes"
+  when: bind9_authoritative
   tags:
     - role:bind9:ddns
     - role:bind9:dnssec
@@ -123,9 +123,9 @@
   loop_control:
     label: "{{ item.name }}"
   when:
-    - bind9_authoritative == "yes"
+    - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
-    - item.update_keyfile != ""
+    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Copy over DDNS private keys for zones with update_keyfile
   ansible.builtin.copy:
@@ -138,9 +138,9 @@
   loop_control:
     label: "{{ item.name }}"
   when:
-    - bind9_authoritative == "yes"
+    - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
-    - item.update_keyfile != ""
+    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Create dynamic bind9 zone files
   ansible.builtin.template:
@@ -153,7 +153,7 @@
   loop_control:
     label: "{{ item.name }}"
   when:
-    - bind9_authoritative == "yes"
+    - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
   notify:
     - Zone file change
@@ -173,7 +173,7 @@
   loop_control:
     label: "{{ item.name }}"
   when:
-    - bind9_authoritative == "yes"
+    - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'master'
   notify:
     - Zone file change
