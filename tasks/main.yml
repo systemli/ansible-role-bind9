@@ -193,3 +193,22 @@
   changed_when: False
   vars:
     ansible_ssh_pipelining: True
+
+- name: Create named systemd override directory
+  ansible.builtin.file:
+    mode: "0755"
+    path: /etc/systemd/system/named.service.d
+    state: directory
+  when:
+    - bind9_zone_type == "master" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
+
+- name: Deploy named systemd override.conf to keep journals and zones in sync
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/named.service.d/override.conf
+    mode: "0644"
+    src: systemd/override.conf
+  notify:
+    - Reload systemd
+    - Restart bind9 
+  when:
+    - bind9_zone_type == "master" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)

@@ -1,4 +1,8 @@
 ---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Restart bind9
   ansible.builtin.service:
     name: bind9
