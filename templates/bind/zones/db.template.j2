@@ -23,7 +23,7 @@
 $ORIGIN .
 {# Default TTL of zone records. `negative_ttl` is a deprecated name of this variable.  #}
 $TTL {{ zone.default_ttl|default(zone.negative_ttl|default('3600')) }}   ; 1 hour.
-{# We first deal in detail with SOA and NS, which are requiered, and root zone registers
+{# We first deal in detail with SOA and NS, which are required, and root zone registers
    Empezamos detallando el SOA y NS, que son indispensables, y registros de raíz de zona #}
 {{ zone.name }} IN  SOA     {{ zone.primary|default(zone.ns_records.0) }}. {{ zone.admin|default(bind9_admin) }}. (
                 {{ zone.serial }} ; serial
@@ -65,7 +65,7 @@ $TTL {{ zone.default_ttl|default(zone.negative_ttl|default('3600')) }}   ; 1 hou
 {% endif %}
 $ORIGIN {{ zone.name }}.
 
-{# Then a generic yaml following basic RR structure (omiting 'class'):
+{# Then a generic yaml following basic RR structure (omitting 'class'):
    Seguimos con un yaml conforme a la estructura básica de un RR (omitiendo 'class'):
    http://www.zytrax.com/books/dns/ch8/#generic #}
 
