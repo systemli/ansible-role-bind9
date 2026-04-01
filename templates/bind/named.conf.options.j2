@@ -52,6 +52,17 @@ options {
 	// Look here for DNSSEC keys
 	key-directory "{{ bind9_keydir }}";
 {% endif %}
+
+{% if not bind9_hidden_master | bool %}
+{% if bind9_rate_limit|default({}) %}
+	rate-limit {
+{% for key, value in bind9_rate_limit.items() %}
+		{{ key }} {{ value }};
+{% endfor %}
+	};
+{% endif %}
+	minimal-any yes;
+{% endif %}
 };
 
 {% if bind9_dnssec_policies|default() %}
