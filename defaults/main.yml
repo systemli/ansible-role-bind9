@@ -112,3 +112,12 @@ bind9_generate_ddns_key: true
 bind9_zonedir: /etc/bind/zones
 bind9_keydir: /etc/bind/keys
 bind9_local_keydir: files/bind/zones
+
+# Bind9 rate limiting
+# bind9_rate_limit:
+#   errors-per-second: 10
+#   log-only: yes
+#   nxdomains-per-second: 10
+#   responses-per-second: 15
+#   slip: 1
+#   window: 5
