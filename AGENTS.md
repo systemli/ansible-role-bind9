@@ -28,4 +28,5 @@ Ansible role that installs and configures the BIND9 nameserver on Debian (bookwo
 
 - Write in English, use conventional commit titles (`feat:`, `fix:`, `chore:`, `ci:`; `!` for breaking changes)
 - The PR title sets the release-drafter label (`enhancement`, `bug`, `chore`, `breaking`); a breaking change bumps the major version
-- Open PRs as draft; there is no PR template
+- Open PRs as draft and fill in `.github/pull_request_template.md`: a summary of what and why, plus a breaking changes section if needed
+- Do not list changed files or claim test results in the description; CI covers that
