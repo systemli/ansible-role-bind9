@@ -11,21 +11,24 @@
   when: item.update_keyfile is defined
 
 - name: Generate DDNS key
-  ansible.builtin.shell: "tsig-keygen -a {{ item.update_key_algorithm | d('hmac-sha512') }} {{ item.name }}_{{ item.update_keyfile }}_update > {{ bind9_keydir }}/{{ item.update_keyfile }}.private"
+  ansible.builtin.shell: >-
+    tsig-keygen -a {{ item.update_key_algorithm | d('hmac-sha512') }}
+    {{ item.name }}_{{ item.update_keyfile }}_update
+    > {{ bind9_keydir }}/{{ item.update_keyfile }}.private
   args:
     creates: "{{ bind9_keydir }}/{{ item.update_keyfile }}.private"
   register: ddns_key
   changed_when: true
   when: item.update_keyfile is defined and not update_keyfile_tmp.stat.exists
 
-- name: Copy DDNS key to control host
+- name: Copy DDNS key to control host  # noqa: no-handler
   ansible.builtin.fetch:
     src: "{{ bind9_keydir }}/{{ item.update_keyfile }}.private"
     dest: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
     flat: true
   when: ddns_key is changed
 
-- name: Create dummy DDNS public key file on control host
+- name: Create dummy DDNS public key file on control host  # noqa: no-handler
   become: false
   delegate_to: localhost
   ansible.builtin.file:
