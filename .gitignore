@@ -69,3 +69,6 @@ tests/__pycache__
 
 # Ansible files
 meta/.galaxy_install_info
+
+# ansible-lint
+.ansible/

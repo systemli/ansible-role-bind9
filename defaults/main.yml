@@ -57,16 +57,32 @@ bind9_rndc_key: ""
 #  - name: ns-primary
 #    addresses:
 #      - 1.2.3.4
+bind9_masters: []
 
 # Primaries for particular zones (if configured as secondary)
 # bind9_masters_extra:
 #  - name: ns-primary
 #    addresses:
 #      - 1.2.3.4
+bind9_masters_extra: []
 
 # Global secondaries for all zones (if configured as primary)
 # bind9_slaves:
 #  - 1.2.3.4
+bind9_slaves: []
+
+# Forwarders (used when bind9_forward is enabled)
+# bind9_forward_servers:
+#  - 9.9.9.9
+bind9_forward_servers: []
+
+# Custom DNSSEC policies
+# bind9_dnssec_policies:
+#  - name: custom
+#    dnssec_keys:
+#      - ksk lifetime unlimited algorithm ecdsap256sha256
+#      - zsk lifetime 90d algorithm ecdsap256sha256
+bind9_dnssec_policies: []
 
 # Enable BIND's XML statistics-channels (for monitoring purposes)
 bind9_statistics_enabled: False
@@ -128,3 +144,4 @@ bind9_local_keydir: files/bind/zones
 #   responses-per-second: 15
 #   slip: 1
 #   window: 5
+bind9_rate_limit: {}

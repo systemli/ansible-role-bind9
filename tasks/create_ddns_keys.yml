@@ -4,7 +4,10 @@
   delegate_to: localhost
   ansible.builtin.stat:
     path: "{{ bind9_local_keydir }}/{{ item.update_keyfile }}.private"
+    get_checksum: false
+    get_mime: false
   register: update_keyfile_tmp
+  check_mode: false
   when: item.update_keyfile is defined
 
 - name: Generate DDNS key
