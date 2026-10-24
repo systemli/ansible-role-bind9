@@ -2,19 +2,19 @@
 // Do any local configuration here
 //
 
-{% if bind9_masters|default() %}
-{%   for master in bind9_masters %}
-primaries {{ master.name }} {
-{%     for addr in master.addresses %}
+{% if bind9_primaries|default() %}
+{%   for primary in bind9_primaries %}
+primaries {{ primary.name }} {
+{%     for addr in primary.addresses %}
     {{ addr }};
 {%     endfor %}
 };
 {%   endfor %}
 {% endif %}
-{% if bind9_masters_extra|default() %}
-{%   for master in bind9_masters_extra %}
-primaries {{ master.name }} {
-{%     for addr in master.addresses %}
+{% if bind9_primaries_extra|default() %}
+{%   for primary in bind9_primaries_extra %}
+primaries {{ primary.name }} {
+{%     for addr in primary.addresses %}
     {{ addr }};
 {%     endfor %}
 };
@@ -29,11 +29,10 @@ statistics-channels {
 
 // The following zones are managed by this DNS Server //
 {% for zone in (bind9_zones_static + bind9_zones_dynamic)|sort(attribute='name') %}
-{% set zone_type = zone.type|default(bind9_zone_type|default('master')) %}
-{% set zone_type_conf = {'master': 'primary', 'slave': 'secondary'}.get(zone_type, zone_type) %}
+{% set zone_type = zone.type|default(bind9_zone_type|default('primary')) %}
 zone "{{ zone.name }}" {
-    type {{ zone_type_conf }};
-{%   if zone_type == 'master' %}
+    type {{ zone_type }};
+{%   if zone_type == 'primary' %}
     file "{{ bind9_zonedir }}/db.{{ zone.name }}";
 {%     if bind9_notify_explicit|default() %}
     notify explicit;
@@ -53,18 +52,18 @@ zone "{{ zone.name }}" {
         grant {{ zone.name }}_ddns_update {{ zone.update_policy_grant }};
     };
 {%     endif %}
-{%   elif zone_type == 'slave' %}
+{%   elif zone_type == 'secondary' %}
     file "/var/lib/bind/db.{{ zone.name }}";
-{%     if zone.masters|default() or bind9_masters|default() %}
+{%     if zone.primaries|default() or bind9_primaries|default() %}
     notify no;
     primaries {
-{%       if zone.masters|default() %}
-{%         for master in zone.masters %}
-        {{ master }};
+{%       if zone.primaries|default() %}
+{%         for primary in zone.primaries %}
+        {{ primary }};
 {%         endfor %}
-{%       elif bind9_masters|default() %}
-{%         for master in bind9_masters %}
-        {{ master.name }};
+{%       elif bind9_primaries|default() %}
+{%         for primary in bind9_primaries %}
+        {{ primary.name }};
 {%         endfor %}
 {%       endif %}
     };

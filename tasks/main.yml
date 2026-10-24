@@ -1,4 +1,23 @@
 ---
+- name: Assert that no removed master/slave variables are set
+  ansible.builtin.assert:
+    that:
+      - bind9_masters is not defined
+      - bind9_masters_extra is not defined
+      - bind9_slaves is not defined
+      - bind9_hidden_master is not defined
+      - bind9_hidden_master_query_networks is not defined
+      - bind9_zone_type not in ['master', 'slave']
+    fail_msg: >-
+      The variables bind9_masters, bind9_masters_extra, bind9_slaves,
+      bind9_hidden_master and bind9_hidden_master_query_networks were renamed to
+      bind9_primaries, bind9_primaries_extra, bind9_secondaries,
+      bind9_hidden_primary and bind9_hidden_primary_query_networks. Zone types
+      master/slave are now primary/secondary. See the README.
+    quiet: true
+  tags:
+    - always
+
 - name: Install bind9 packages
   ansible.builtin.apt:
     name: "{{ bind9_packages }}"
@@ -70,7 +89,7 @@
   vars:
     ansible_pipelining: true
 
-- name: Create bind9 directory for master zones
+- name: Create bind9 directory for primary zones
   ansible.builtin.file:
     path: "{{ bind9_zonedir }}"
     state: directory
@@ -79,7 +98,7 @@
     mode: "02775"
   when: bind9_authoritative
 
-- name: Create bind9 directory for master zone includes
+- name: Create bind9 directory for primary zone includes
   ansible.builtin.file:
     path: "{{ bind9_zonedir }}/includes"
     state: directory
@@ -129,7 +148,7 @@
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'master'
+    - item.type | default(bind9_zone_type) == 'primary'
     - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Copy over DDNS private keys for zones with update_keyfile
@@ -144,7 +163,7 @@
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'master'
+    - item.type | default(bind9_zone_type) == 'primary'
     - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Create dynamic bind9 zone files
@@ -159,7 +178,7 @@
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'master'
+    - item.type | default(bind9_zone_type) == 'primary'
   notify:
     - Zone file change
     - Reload bind9
@@ -179,7 +198,7 @@
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'master'
+    - item.type | default(bind9_zone_type) == 'primary'
   notify:
     - Zone file change
     - Reload bind9
@@ -200,7 +219,7 @@
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'master'
+    - item.type | default(bind9_zone_type) == 'primary'
   changed_when: false
   check_mode: false
   vars:
@@ -212,7 +231,7 @@
     path: /etc/systemd/system/named.service.d
     state: directory
   when:
-    - bind9_zone_type == "master" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
+    - bind9_zone_type == "primary" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
 
 - name: Deploy named systemd override.conf to keep journals and zones in sync
   ansible.builtin.copy:
@@ -223,4 +242,4 @@
     - Reload systemd
     - Restart bind9
   when:
-    - bind9_zone_type == "master" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
+    - bind9_zone_type == "primary" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
