@@ -28,7 +28,7 @@ options {
 	recursion {{ bind9_recursor|default()|ternary('yes', 'no') }};
 	allow-recursion { {{ bind9_recursor|default()|ternary('our_networks', 'none') }}; };
 
-	allow-query { {% if bind9_hidden_master|default() %}our_neighbors{% elif bind9_authoritative|default() %}any{% else %}our_networks{% endif %}; };
+	allow-query { {% if bind9_hidden_master|default() %}our_neighbors; hidden_master_query{% elif bind9_authoritative|default() %}any{% else %}our_networks{% endif %}; };
 {% if bind9_authoritative|default() %}
 
 	allow-transfer { our_neighbors; };
@@ -104,6 +104,16 @@ acl our_neighbors {
 	// Permitted for transfers
 {% if bind9_our_neighbors|default() %}
 {%   for network in bind9_our_neighbors %}
+	{{ network }};
+{%   endfor %}
+{% endif %}
+};
+
+acl hidden_master_query {
+	// Permitted for queries and dynamic updates on a hidden master
+	// (in addition to our_neighbors)
+{% if bind9_hidden_master_query_networks|default() %}
+{%   for network in bind9_hidden_master_query_networks %}
 	{{ network }};
 {%   endfor %}
 {% endif %}

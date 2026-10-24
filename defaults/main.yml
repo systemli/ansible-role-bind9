@@ -21,8 +21,15 @@ bind9_qname_minimization: "relaxed"
 # DNSSEC validation mode (yes/no/auto)
 bind9_dnssec_validation: "auto"
 
-# Run bind as a hidden master (i.e. limit queries to our_networks)
+# Run bind as a hidden master (i.e. limit queries to our_neighbors and
+# bind9_hidden_master_query_networks)
 bind9_hidden_master: no
+
+# Additional hosts/networks permitted to query a hidden master. Since BIND
+# 9.20.30, allow-query is also enforced for dynamic updates to inline-signed
+# zones, so clients sending RFC 2136 updates (e.g. ACME DNS-01) must be listed
+# here. In contrast to bind9_our_neighbors this does not permit zone transfers.
+bind9_hidden_master_query_networks: []
 
 # Only notify nameservers from also-notify, not from the zone NS records.
 # Necessary to keep traffic between nameservers in private network.
