@@ -1,6 +1,10 @@
-## Summary
+## What changed
 
-<!-- What does this PR change and why (goal, improvement, feature, bug fix)? -->
+<!-- Describe what this PR changes. -->
+
+## Why
+
+<!-- Describe the reason: goal, improvement, feature or bug fix. -->
 
 ## Breaking changes
 
