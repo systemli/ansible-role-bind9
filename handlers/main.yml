@@ -14,5 +14,4 @@
     state: reloaded
 
 - name: Zone file change
-  ansible.builtin.debug:
-    msg: "dummy handler"
+  ansible.builtin.meta: noop

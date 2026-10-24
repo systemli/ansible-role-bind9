@@ -41,6 +41,8 @@
   loop:
     - named.conf.local
     - named.conf.options
+  loop_control:
+    label: "{{ item }}"
   notify:
     - Reload bind9
   # Variable register for eventual use outside the role
@@ -51,7 +53,8 @@
   register: bind9_reg_named_checkconf
   become: true
   become_user: "{{ bind9_user }}"
-  changed_when: False
+  changed_when: false
+  check_mode: false
   vars:
     ansible_ssh_pipelining: True
 
@@ -81,6 +84,8 @@
     group: "{{ bind9_group }}"
     mode: "0644"
   loop: "{{ bind9_authoritative_includes }}"
+  loop_control:
+    label: "{{ item }}"
   when: bind9_authoritative
   notify:
     - Zone file change
@@ -182,7 +187,11 @@
     - role:bind9:zones
 
 - name: Check validity of zone files
-  ansible.builtin.command: named-checkzone {{ item.name }} {{ bind9_zonedir }}/db.{{ item.name }}
+  ansible.builtin.command:
+    argv:
+      - named-checkzone
+      - "{{ item.name }}"
+      - "{{ bind9_zonedir }}/db.{{ item.name }}"
   register: bind9_reg_named_checkzone
   become: true
   become_user: "{{ bind9_user }}"
@@ -190,7 +199,8 @@
   loop_control:
     label: "{{ item.name }}"
   when: item.type | default(bind9_zone_type) == 'master'
-  changed_when: False
+  changed_when: false
+  check_mode: false
   vars:
     ansible_ssh_pipelining: True
 
