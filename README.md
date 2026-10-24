@@ -40,6 +40,14 @@ bind9_our_neighbors:
 - slave_ip_3
 ```
 
+* On a hidden master (`bind9_hidden_master: true`) only `bind9_our_neighbors` may query. Clients that need to query or send dynamic updates (RFC 2136) without being allowed to transfer zones go into `bind9_hidden_master_query_networks`. Since BIND 9.20.30 `allow-query` is also enforced for dynamic updates to inline-signed zones:
+
+```yaml
+bind9_hidden_master: true
+bind9_hidden_master_query_networks:
+- 192.0.2.0/24
+```
+
 * Place your BIND zone file in ansible directory (not in role directory): `files/bind/zones/db.example.com
 
 ### Slave servers
