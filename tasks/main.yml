@@ -24,6 +24,18 @@
         group: "{{ bind9_group }}"
         mode: 0644
 
+- name: Create bind9 directory for keys
+  ansible.builtin.file:
+    path: "{{ bind9_keydir }}"
+    state: directory
+    owner: "{{ bind9_user }}"
+    group: "{{ bind9_group }}"
+    mode: "02750"
+  when: bind9_authoritative or bind9_generate_ddns_key | bool
+  tags:
+    - role:bind9:ddns
+    - role:bind9:dnssec
+
 - name: Create dynamic DNS keys
   ansible.builtin.include_tasks: create_ddns_keys.yml
   loop: "{{ bind9_zones_static + bind9_zones_dynamic }}"
@@ -103,18 +115,6 @@
     - Restart bind9
   tags:
     - role:bind9:rndc_key
-
-- name: Create bind9 directory for keys
-  ansible.builtin.file:
-    path: "{{ bind9_keydir }}"
-    state: directory
-    owner: "{{ bind9_user }}"
-    group: "{{ bind9_group }}"
-    mode: 02750
-  when: bind9_authoritative
-  tags:
-    - role:bind9:ddns
-    - role:bind9:dnssec
 
 # TODO: DDNS: move keys into vault file
 - name: Copy over DDNS keys for zones with update_keyfile
@@ -198,7 +198,9 @@
   loop: "{{ bind9_zones_dynamic + bind9_zones_static }}"
   loop_control:
     label: "{{ item.name }}"
-  when: item.type | default(bind9_zone_type) == 'master'
+  when:
+    - bind9_authoritative
+    - item.type | default(bind9_zone_type) == 'master'
   changed_when: false
   check_mode: false
   vars:
@@ -219,6 +221,6 @@
     src: systemd/override.conf
   notify:
     - Reload systemd
-    - Restart bind9 
+    - Restart bind9
   when:
     - bind9_zone_type == "master" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
