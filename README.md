@@ -18,14 +18,14 @@ Features:
 
 ## Basic server configuration
 
-### Master server
+### Primary server
 
-* set vars for your master server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zones and forwarder:
+* set vars for your primary server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zones and forwarder:
 
 ```yaml
 bind9_authoritative: true
 bind9_zones_static:
-- { name: example.com , type=master }
+- { name: example.com, type: master }
 bind9_forward: true
 bind9_forward_servers:
 - 8.8.8.8
@@ -48,11 +48,11 @@ bind9_hidden_master_query_networks:
 - 192.0.2.0/24
 ```
 
-* Place your BIND zone file in ansible directory (not in role directory): `files/bind/zones/db.example.com
+* Place your BIND zone file in ansible directory (not in role directory): `files/bind/zones/db.example.com`
 
-### Slave servers
+### Secondary servers
 
-* set vars for your slave servers:
+* set vars for your secondary servers:
 
 ```yaml
 bind9_zones_static:
@@ -63,7 +63,7 @@ bind9_forward_servers:
 - 4.4.4.4
 bind9_masters:
 - { name: master_name, addresses: [master_ip] }
-bind9_recursor: our_network
+bind9_recursor: true
 ```
 
 ### Dynamic zones
@@ -103,7 +103,7 @@ zones_my_domains:
   retry: 2H
   expire: 1000H
   # NS and other pre-formatted records values must be given as full qualified domain names, with or without final dot, but not relative to the zone
-  primary: ns1.dyn_domain.org         # Optional, if you don't define it, firs NS is taken
+  primary: ns1.dyn_domain.org         # Optional, if you don't define it, first NS is taken
   admin: postmaster.dyn_domain.org
   ns_records:
   - ns1.dyn_domain.org
@@ -135,7 +135,7 @@ If you want to have your DDNS keys created by this role configure `bind9_generat
 -  bind9_generate_ddns_key: true
 ```
 
-Keys will by default be stored to `files/bind/zones` withinin your playbook location, but you can customize this with `bind9_local_keydir`
+Keys will by default be stored to `files/bind/zones` within your playbook location, but you can customize this with `bind9_local_keydir`
 
 ```yaml
 -  bind9_local_keydir: credentials/bind
@@ -144,27 +144,25 @@ Keys will by default be stored to `files/bind/zones` withinin your playbook loca
 ## Zone database
 
 Please note that for DDNS updates to work, the location of the zone files needs to be writable by the BIND process.
-Linux distros with Mandatory Access Control (Apparmor, SELinux) ususally don't allow writing to the default `/etc/bind/zones` path. In order to circumvent this you may want to change the zone files location to `/var/lib/bind/zones` instead:
+Linux distros with Mandatory Access Control (Apparmor, SELinux) usually don't allow writing to the default `/etc/bind/zones` path. In order to circumvent this you may want to change the zone files location to `/var/lib/bind/zones` instead:
 
 ```yaml
 -  bind9_zonedir: /var/lib/bind/zones
 ```
 
-## Role varibles
+## Role variables
 
-See `defaults/main.yml` for a list of role variables.
+See `defaults/main.yml` for a list of role variables with their defaults. The accepted variables and their types are also declared in `meta/argument_specs.yml`, which Ansible uses to validate the role input.
 
-Testing & Development
----------------------
+The role registers `bind9_named_conf`, `bind9_reg_named_checkconf` and `bind9_reg_named_checkzone`, which can be used in your playbook after the role ran.
 
-Tests
------
+The role renders the BIND keywords `primaries` and `type primary|secondary`. The role variables (`bind9_masters`, `bind9_slaves`, zone `type: master|slave`) keep their legacy names for backwards compatibility. Requires BIND 9.16 or newer.
 
-For developing and testing the role we use Github Actions, Molecule and Docker. On the local environment you can easily test the role with
+## Testing & Development
 
-Run local tests with:
+For developing and testing the role we use GitHub Actions, Molecule and Docker. Run the tests locally with:
 
-```
+```bash
 molecule test
 ```
 
@@ -174,4 +172,4 @@ This Ansible role is licensed under the GNU GPLv3.
 
 ## Author
 
-Copyright 2017-2025 systemli.org (<https://www.systemli.org/>)
+Copyright 2017-2026 systemli.org (<https://www.systemli.org/>)

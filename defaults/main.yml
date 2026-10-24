@@ -4,16 +4,16 @@ bind9_user: bind
 bind9_group: bind
 
 # Run bind as a DNS recursor?
-bind9_recursor: no
+bind9_recursor: false
 
 # Run bind as authoritative nameserver?
-bind9_authoritative: no
+bind9_authoritative: false
 
 # run bind with forwarding?
-bind9_forward: no
+bind9_forward: false
 
 # Setup DNSSEC for recursor and zones?
-bind9_dnssec: no
+bind9_dnssec: false
 
 # set QNAME minimization behavior in the BIND resolver; atm bind9 default is relaxed
 bind9_qname_minimization: "relaxed"
@@ -23,7 +23,7 @@ bind9_dnssec_validation: "auto"
 
 # Run bind as a hidden master (i.e. limit queries to our_neighbors and
 # bind9_hidden_master_query_networks)
-bind9_hidden_master: no
+bind9_hidden_master: false
 
 # Additional hosts/networks permitted to query a hidden master. Since BIND
 # 9.20.30, allow-query is also enforced for dynamic updates to inline-signed
@@ -33,7 +33,7 @@ bind9_hidden_master_query_networks: []
 
 # Only notify nameservers from also-notify, not from the zone NS records.
 # Necessary to keep traffic between nameservers in private network.
-bind9_notify_explicit: no
+bind9_notify_explicit: false
 
 # Default zone type
 bind9_zone_type: master
@@ -85,7 +85,7 @@ bind9_forward_servers: []
 bind9_dnssec_policies: []
 
 # Enable BIND's XML statistics-channels (for monitoring purposes)
-bind9_statistics_enabled: False
+bind9_statistics_enabled: false
 
 # DNS zones
 # bind9_zone_dynamic: zone files created from template (see
@@ -111,7 +111,7 @@ bind9_templates: ""
 # bind9_templates: "{{ playbook_dir }}/host_vars/<my_host>/templates/"
 
 # Logging
-bind9_named_logging: False
+bind9_named_logging: false
 bind9_log_path: /var/log/bind
 bind9_log_severity: warning # critical | error | warning | notice | info | debug [ level ] | dynamic
 bind9_log_versions: 3

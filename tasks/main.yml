@@ -1,7 +1,7 @@
 ---
 - name: Install bind9 packages
   ansible.builtin.apt:
-    pkg: "{{ bind9_packages }}"
+    name: "{{ bind9_packages }}"
     state: present
     cache_valid_time: 600
 
@@ -14,7 +14,7 @@
         state: directory
         owner: "{{ bind9_user }}"
         group: "{{ bind9_group }}"
-        mode: 0755
+        mode: "0755"
 
     - name: Configure log rotate for bind9
       ansible.builtin.template:
@@ -22,7 +22,7 @@
         dest: /etc/logrotate.d/bind
         owner: root
         group: "{{ bind9_group }}"
-        mode: 0644
+        mode: "0644"
 
 - name: Create bind9 directory for keys
   ansible.builtin.file:
@@ -68,7 +68,7 @@
   changed_when: false
   check_mode: false
   vars:
-    ansible_ssh_pipelining: True
+    ansible_pipelining: true
 
 - name: Create bind9 directory for master zones
   ansible.builtin.file:
@@ -173,7 +173,7 @@
     owner: root
     group: "{{ bind9_group }}"
     mode: "0644"
-    force: "{{ item.force_update | default('yes') }}"
+    force: "{{ item.force_update | default(true) }}"
   loop: "{{ bind9_zones_static }}"
   loop_control:
     label: "{{ item.name }}"
@@ -204,7 +204,7 @@
   changed_when: false
   check_mode: false
   vars:
-    ansible_ssh_pipelining: True
+    ansible_pipelining: true
 
 - name: Create named systemd override directory
   ansible.builtin.file:

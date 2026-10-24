@@ -4,7 +4,7 @@
 
 {% if bind9_masters|default() %}
 {%   for master in bind9_masters %}
-masters {{ master.name }} {
+primaries {{ master.name }} {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
@@ -13,7 +13,7 @@ masters {{ master.name }} {
 {% endif %}
 {% if bind9_masters_extra|default() %}
 {%   for master in bind9_masters_extra %}
-masters {{ master.name }} {
+primaries {{ master.name }} {
 {%     for addr in master.addresses %}
     {{ addr }};
 {%     endfor %}
@@ -30,8 +30,9 @@ statistics-channels {
 // The following zones are managed by this DNS Server //
 {% for zone in (bind9_zones_static + bind9_zones_dynamic)|sort(attribute='name') %}
 {% set zone_type = zone.type|default(bind9_zone_type|default('master')) %}
+{% set zone_type_conf = {'master': 'primary', 'slave': 'secondary'}.get(zone_type, zone_type) %}
 zone "{{ zone.name }}" {
-    type {{ zone_type }};
+    type {{ zone_type_conf }};
 {%   if zone_type == 'master' %}
     file "{{ bind9_zonedir }}/db.{{ zone.name }}";
 {%     if bind9_notify_explicit|default() %}
@@ -56,7 +57,7 @@ zone "{{ zone.name }}" {
     file "/var/lib/bind/db.{{ zone.name }}";
 {%     if zone.masters|default() or bind9_masters|default() %}
     notify no;
-    masters {
+    primaries {
 {%       if zone.masters|default() %}
 {%         for master in zone.masters %}
         {{ master }};
