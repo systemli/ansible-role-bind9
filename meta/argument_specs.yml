@@ -38,6 +38,10 @@ argument_specs:
       bind9_hidden_primary:
         type: bool
         default: false
+      bind9_hidden_primary_query_networks:
+        type: list
+        elements: str
+        default: []
       bind9_notify_explicit:
         type: bool
         default: false
