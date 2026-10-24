@@ -1,36 +1,35 @@
 ---
 name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
+# Categories group the changelog and resolve the next version from PR labels.
+# The highest matching semver-increment wins; the last entry is the fallback.
 categories:
   - title: '💥 Breaking Changes'
-    labels:
-      - 'breaking'
+    semver-increment: major
+    exclusive: true
+    when:
+      label: 'breaking'
   - title: '🚀 Features'
-    labels:
-      - 'enhancement'
+    semver-increment: minor
+    when:
+      label: 'enhancement'
   - title: '🐛 Bug Fixes'
-    labels:
-      - 'bug'
+    semver-increment: patch
+    when:
+      label: 'bug'
   - title: '🧹 Maintenance'
-    labels:
-      - 'chore'
-      - 'dependencies'
-      - 'github_actions'
-version-resolver:
-  major:
-    labels:
-      - 'breaking'
-  minor:
-    labels:
-      - 'enhancement'
-  patch:
-    labels:
-      - 'bug'
-      - 'chore'
-      - 'dependencies'
-      - 'github_actions'
-  default: patch
+    semver-increment: patch
+    when:
+      labels:
+        - 'chore'
+        - 'dependencies'
+        - 'github_actions'
+  - title: '📦 Other Changes'
+    semver-increment: patch
+  - type: version-resolver
+    semver-increment: patch
 # Labels are derived from conventional commit style PR titles
+sync-labels: true
 autolabeler:
   - label: 'breaking'
     title:
