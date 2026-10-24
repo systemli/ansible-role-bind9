@@ -21,22 +21,22 @@ bind9_qname_minimization: "relaxed"
 # DNSSEC validation mode (yes/no/auto)
 bind9_dnssec_validation: "auto"
 
-# Run bind as a hidden master (i.e. limit queries to our_neighbors and
-# bind9_hidden_master_query_networks)
-bind9_hidden_master: false
+# Run bind as a hidden primary (i.e. limit queries to our_neighbors and
+# bind9_hidden_primary_query_networks)
+bind9_hidden_primary: false
 
-# Additional hosts/networks permitted to query a hidden master. Since BIND
+# Additional hosts/networks permitted to query a hidden primary. Since BIND
 # 9.20.30, allow-query is also enforced for dynamic updates to inline-signed
 # zones, so clients sending RFC 2136 updates (e.g. ACME DNS-01) must be listed
 # here. In contrast to bind9_our_neighbors this does not permit zone transfers.
-bind9_hidden_master_query_networks: []
+bind9_hidden_primary_query_networks: []
 
 # Only notify nameservers from also-notify, not from the zone NS records.
 # Necessary to keep traffic between nameservers in private network.
 bind9_notify_explicit: false
 
 # Default zone type
-bind9_zone_type: master
+bind9_zone_type: primary
 
 # Permitted hosts/networks for recursion (when configured as recursor)
 bind9_our_networks:
@@ -53,23 +53,23 @@ bind9_rndc_algorithm: hmac-md5
 bind9_rndc_key: ""
 
 # Global primaries for all zones (if configured as secondary)
-# bind9_masters:
+# bind9_primaries:
 #  - name: ns-primary
 #    addresses:
 #      - 1.2.3.4
-bind9_masters: []
+bind9_primaries: []
 
 # Primaries for particular zones (if configured as secondary)
-# bind9_masters_extra:
+# bind9_primaries_extra:
 #  - name: ns-primary
 #    addresses:
 #      - 1.2.3.4
-bind9_masters_extra: []
+bind9_primaries_extra: []
 
 # Global secondaries for all zones (if configured as primary)
-# bind9_slaves:
+# bind9_secondaries:
 #  - 1.2.3.4
-bind9_slaves: []
+bind9_secondaries: []
 
 # Forwarders (used when bind9_forward is enabled)
 # bind9_forward_servers:

@@ -20,31 +20,31 @@ Features:
 
 ### Primary server
 
-* set vars for your primary server, for instance in `host_vars/master_name/vars/XX_bind.yml`, here with an example.com static zones and forwarder:
+* set vars for your primary server, for instance in `host_vars/primary_name/vars/XX_bind.yml`, here with an example.com static zones and forwarder:
 
 ```yaml
 bind9_authoritative: true
 bind9_zones_static:
-- { name: example.com, type: master }
+- { name: example.com, type: primary }
 bind9_forward: true
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4
-bind9_slaves:
-- slave_ip_1
-- slave_ip_2
-- slave_ip_3
+bind9_secondaries:
+- secondary_ip_1
+- secondary_ip_2
+- secondary_ip_3
 bind9_our_neighbors:
-- slave_ip_1
-- slave_ip_2
-- slave_ip_3
+- secondary_ip_1
+- secondary_ip_2
+- secondary_ip_3
 ```
 
-* On a hidden master (`bind9_hidden_master: true`) only `bind9_our_neighbors` may query. Clients that need to query or send dynamic updates (RFC 2136) without being allowed to transfer zones go into `bind9_hidden_master_query_networks`. Since BIND 9.20.30 `allow-query` is also enforced for dynamic updates to inline-signed zones:
+* On a hidden primary (`bind9_hidden_primary: true`) only `bind9_our_neighbors` may query. Clients that need to query or send dynamic updates (RFC 2136) without being allowed to transfer zones go into `bind9_hidden_primary_query_networks`. Since BIND 9.20.30 `allow-query` is also enforced for dynamic updates to inline-signed zones:
 
 ```yaml
-bind9_hidden_master: true
-bind9_hidden_master_query_networks:
+bind9_hidden_primary: true
+bind9_hidden_primary_query_networks:
 - 192.0.2.0/24
 ```
 
@@ -56,20 +56,20 @@ bind9_hidden_master_query_networks:
 
 ```yaml
 bind9_zones_static:
-- { name: example.com, type: slave }
+- { name: example.com, type: secondary }
 bind9_forward: true
 bind9_forward_servers:
 - 8.8.8.8
 - 4.4.4.4
-bind9_masters:
-- { name: master_name, addresses: [master_ip] }
+bind9_primaries:
+- { name: primary_name, addresses: [primary_ip] }
 bind9_recursor: true
 ```
 
 ### Dynamic zones
 
 So called "dynamic" zones' records are defined through YAML ansible variable `bind9_zones_dynamic` which is parsed by [`bind/zones/db.template.j2`](templates/bind/zones/db.template.j2) template.
-As there can be several zones, and zone definitions can be long, zone vars are worthily defined in a different vars file, for instance `host_vars/master_name/vars/YY_zones.yml`.  `bind9_zones_dynamic` can be split in several variables, which can be defined in specific files, as in the example below.
+As there can be several zones, and zone definitions can be long, zone vars are worthily defined in a different vars file, for instance `host_vars/primary_name/vars/YY_zones.yml`.  `bind9_zones_dynamic` can be split in several variables, which can be defined in specific files, as in the example below.
 
 In `YY_zones.yml` we may have:
 
@@ -83,11 +83,11 @@ bind9_zones_dynamic: >
 
 bind9_zones_static:
 - name: static_dom.org
-  type: master
+  type: primary
 - name: static_dom2.org
-  type: master
+  type: primary
 - name: static_dom3.org
-  type: slave
+  type: secondary
 ```
 
 And in other vars files:
@@ -96,7 +96,7 @@ And in other vars files:
 zones_my_domains:
 # This is the variables set for my domain
 - name: dyn_domain.org
-  type: master
+  type: primary
   default_ttl: 600
   serial: 2022050501
   refresh: 1D
@@ -156,7 +156,22 @@ See `defaults/main.yml` for a list of role variables with their defaults. The ac
 
 The role registers `bind9_named_conf`, `bind9_reg_named_checkconf` and `bind9_reg_named_checkzone`, which can be used in your playbook after the role ran.
 
-The role renders the BIND keywords `primaries` and `type primary|secondary`. The role variables (`bind9_masters`, `bind9_slaves`, zone `type: master|slave`) keep their legacy names for backwards compatibility. Requires BIND 9.16 or newer.
+The role uses the current BIND terminology (`primaries`, `type primary|secondary`), which requires BIND 9.16 or newer.
+
+### Upgrading from master/slave naming
+
+The following variables and values were renamed. The role fails early if a removed variable is still set.
+
+| Old | New |
+|-----|-----|
+| `bind9_masters` | `bind9_primaries` |
+| `bind9_masters_extra` | `bind9_primaries_extra` |
+| `bind9_slaves` | `bind9_secondaries` |
+| `bind9_hidden_master` | `bind9_hidden_primary` |
+| `bind9_hidden_master_query_networks` | `bind9_hidden_primary_query_networks` |
+| zone `masters` | zone `primaries` |
+| zone `type: master` / `type: slave` | zone `type: primary` / `type: secondary` |
+| `bind9_zone_type: master` | `bind9_zone_type: primary` |
 
 ## Testing & Development
 

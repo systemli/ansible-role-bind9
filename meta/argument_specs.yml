@@ -35,7 +35,7 @@ argument_specs:
       bind9_dnssec_validation:
         type: str
         default: auto
-      bind9_hidden_master:
+      bind9_hidden_primary:
         type: bool
         default: false
       bind9_notify_explicit:
@@ -43,7 +43,7 @@ argument_specs:
         default: false
       bind9_zone_type:
         type: str
-        default: master
+        default: primary
       bind9_our_networks:
         type: list
         elements: str
@@ -58,15 +58,15 @@ argument_specs:
       bind9_rndc_key:
         type: str
         default: ""
-      bind9_masters:
+      bind9_primaries:
         type: list
         elements: dict
         default: []
-      bind9_masters_extra:
+      bind9_primaries_extra:
         type: list
         elements: dict
         default: []
-      bind9_slaves:
+      bind9_secondaries:
         type: list
         elements: str
         default: []

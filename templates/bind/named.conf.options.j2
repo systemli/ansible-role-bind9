@@ -28,17 +28,17 @@ options {
 	recursion {{ bind9_recursor|default()|ternary('yes', 'no') }};
 	allow-recursion { {{ bind9_recursor|default()|ternary('our_networks', 'none') }}; };
 
-	allow-query { {% if bind9_hidden_master|default() %}our_neighbors; hidden_master_query{% elif bind9_authoritative|default() %}any{% else %}our_networks{% endif %}; };
+	allow-query { {% if bind9_hidden_primary|default() %}our_neighbors; hidden_primary_query{% elif bind9_authoritative|default() %}any{% else %}our_networks{% endif %}; };
 {% if bind9_authoritative|default() %}
 
 	allow-transfer { our_neighbors; };
 {% endif %}
-{% if bind9_slaves|default() %}
+{% if bind9_secondaries|default() %}
 
 	// List of secondary nameservers to notify for every zone update
 	also-notify {
-{%   for slave in bind9_slaves %}
-		{{ slave }};
+{%   for secondary in bind9_secondaries %}
+		{{ secondary }};
 {%   endfor %}
 	};
 {% endif %}
@@ -53,7 +53,7 @@ options {
 	key-directory "{{ bind9_keydir }}";
 {% endif %}
 
-{% if not bind9_hidden_master | bool %}
+{% if not bind9_hidden_primary | bool %}
 {% if bind9_rate_limit|default({}) %}
 	rate-limit {
 {% for key, value in bind9_rate_limit.items() %}
@@ -79,7 +79,7 @@ dnssec-policy {{ policy.name }} {
 
 {% if bind9_zones_static|selectattr('update_key_secret','defined')|list|default() %}
 {%   for zone in bind9_zones_static|selectattr('update_key_secret','defined')|list|default([]) %}
-{%     if zone_type|default(bind9_zone_type|default('master')) == 'master' %}
+{%     if zone_type|default(bind9_zone_type|default('primary')) == 'primary' %}
 {%       if loop.first %}
 // The following keys are used for dynamic DNS updates
 {%       endif %}
@@ -109,11 +109,11 @@ acl our_neighbors {
 {% endif %}
 };
 
-acl hidden_master_query {
-	// Permitted for queries and dynamic updates on a hidden master
+acl hidden_primary_query {
+	// Permitted for queries and dynamic updates on a hidden primary
 	// (in addition to our_neighbors)
-{% if bind9_hidden_master_query_networks|default() %}
-{%   for network in bind9_hidden_master_query_networks %}
+{% if bind9_hidden_primary_query_networks|default() %}
+{%   for network in bind9_hidden_primary_query_networks %}
 	{{ network }};
 {%   endfor %}
 {% endif %}
