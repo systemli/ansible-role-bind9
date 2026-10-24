@@ -2,34 +2,48 @@
 name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
 categories:
+  - title: '💥 Breaking Changes'
+    labels:
+      - 'breaking'
   - title: '🚀 Features'
     labels:
-      - 'feature'
       - 'enhancement'
   - title: '🐛 Bug Fixes'
     labels:
-      - 'fix'
-      - 'bugfix'
       - 'bug'
   - title: '🧹 Maintenance'
     labels:
       - 'chore'
       - 'dependencies'
+      - 'github_actions'
 version-resolver:
   major:
     labels:
-      - 'feature'
+      - 'breaking'
   minor:
     labels:
       - 'enhancement'
   patch:
     labels:
-      - 'fix'
-      - 'bugfix'
       - 'bug'
       - 'chore'
       - 'dependencies'
+      - 'github_actions'
   default: patch
+# Labels are derived from conventional commit style PR titles
+autolabeler:
+  - label: 'breaking'
+    title:
+      - '/^\w+(\(.+\))?!:/'
+  - label: 'enhancement'
+    title:
+      - '/^feat(\(.+\))?!?:/'
+  - label: 'bug'
+    title:
+      - '/^fix(\(.+\))?!?:/'
+  - label: 'chore'
+    title:
+      - '/^(chore|refactor|ci|docs|build|test|style|perf)(\(.+\))?!?:/'
 template: |
   ## Changes
 
