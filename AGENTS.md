@@ -12,7 +12,7 @@ Ansible role that installs and configures the BIND9 nameserver on Debian (bookwo
 
 ## Checks
 
-- `ansible-lint .` must pass without warnings (config in `.ansible-lint`)
+- `ansible-lint .` must pass without warnings
 - `molecule test` runs the role in a container; CI runs it on Debian 12 and 13
 - `ansible-lint` creates `.ansible/`; it is git ignored, never commit it
 

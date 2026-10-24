@@ -15,6 +15,6 @@ platforms:
 
 provisioner:
   name: ansible
-  become: True
+  become: true
   ansible_args:
     - --diff
