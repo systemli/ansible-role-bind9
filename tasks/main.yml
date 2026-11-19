@@ -57,7 +57,7 @@
 
 - name: Create dynamic DNS keys
   ansible.builtin.include_tasks: create_ddns_keys.yml
-  loop: "{{ bind9_zones_static + bind9_zones_dynamic }}"
+  loop: "{{ (bind9_zones_static + bind9_zones_dynamic) | selectattr('update_keyfile', 'defined') | list }}"
   loop_control:
     label: "{{ item.name }}"
   when: bind9_generate_ddns_key | bool
@@ -143,13 +143,12 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: "0644"
-  loop: "{{ bind9_zones_static + bind9_zones_dynamic }}"
+  loop: "{{ (bind9_zones_static + bind9_zones_dynamic) | selectattr('update_keyfile', 'defined') | rejectattr('update_keyfile', 'equalto', '') | list }}"
   loop_control:
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'primary'
-    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Copy over DDNS private keys for zones with update_keyfile
   ansible.builtin.copy:
@@ -158,13 +157,12 @@
     owner: "{{ bind9_user }}"
     group: "{{ bind9_group }}"
     mode: "0600"
-  loop: "{{ bind9_zones_static + bind9_zones_dynamic }}"
+  loop: "{{ (bind9_zones_static + bind9_zones_dynamic) | selectattr('update_keyfile', 'defined') | rejectattr('update_keyfile', 'equalto', '') | list }}"
   loop_control:
     label: "{{ item.name }}"
   when:
     - bind9_authoritative
     - item.type | default(bind9_zone_type) == 'primary'
-    - item.update_keyfile is defined and item.update_keyfile != ""
 
 - name: Create dynamic bind9 zone files
   ansible.builtin.template:
@@ -206,20 +204,11 @@
     - role:bind9:zones
 
 - name: Check validity of zone files
-  ansible.builtin.command:
-    argv:
-      - named-checkzone
-      - "{{ item.name }}"
-      - "{{ bind9_zonedir }}/db.{{ item.name }}"
+  ansible.builtin.command: named-checkconf -z
   register: bind9_reg_named_checkzone
   become: true
   become_user: "{{ bind9_user }}"
-  loop: "{{ bind9_zones_dynamic + bind9_zones_static }}"
-  loop_control:
-    label: "{{ item.name }}"
-  when:
-    - bind9_authoritative
-    - item.type | default(bind9_zone_type) == 'primary'
+  when: bind9_authoritative
   changed_when: false
   check_mode: false
   vars:
