@@ -232,3 +232,18 @@
     - Restart bind9
   when:
     - bind9_zone_type == "primary" and (bind9_dnssec | bool or bind9_zones_dynamic | length > 0)
+
+
+- name: Install dnssec-info.sh helper script
+  ansible.builtin.template:
+    src: dnssec-info.sh.j2
+    dest: /usr/local/bin/dnssec-info.sh
+    owner: root
+    group: root
+    mode: "0755"
+  when:
+    - bind9_authoritative
+    - bind9_zone_type == "primary"
+    - bind9_dnssec | bool
+  tags:
+    - role:bind9:dnssec
