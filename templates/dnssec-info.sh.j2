@@ -1,0 +1,65 @@
+#!/bin/sh
+# {{ ansible_managed }}
+set -eu
+
+keydir="{{ bind9_keydir }}"
+
+zone="${1:-}"
+zone="${zone%.}"
+if [ -z "$zone" ]; then
+    echo "Usage: $0 <zone>" >&2
+    exit 1
+fi
+
+algorithm_name() {
+    case "$1" in
+        8) echo "RSASHA256" ;;
+        10) echo "RSASHA512" ;;
+        13) echo "ECDSAP256SHA256" ;;
+        14) echo "ECDSAP384SHA384" ;;
+        15) echo "ED25519" ;;
+        16) echo "ED448" ;;
+        *) echo "unknown" ;;
+    esac
+}
+
+found=0
+for keyfile in "$keydir/K$zone.+"*.key; do
+	[ -e "$keyfile" ] || continue
+    grep -Eq 'DNSKEY[[:space:]]+257[[:space:]]' "$keyfile" || continue
+    found=1
+
+    # <owner> IN DS <keytag> <algorithm> <digest type> <digest>
+    ds="$(dnssec-dsfromkey -2 "$keyfile")"
+    keytag="$(echo "$ds" | awk '{ print $4 }')"
+    algorithm="$(echo "$ds" | awk '{ print $5 }')"
+    digest="$(echo "$ds" | awk '{ print $7 }')"
+    # <owner> [ttl] IN DNSKEY <flags> <protocol> <algorithm> <key...>
+    pubkey="$(awk '!/^;/ { for (i = 1; i <= NF; i++) if ($i == "DNSKEY") {
+        for (j = i + 4; j <= NF; j++) printf "%s", $j; print ""; exit } }' "$keyfile")"
+
+    cat <<EOF
+Key file: $keyfile
+
+DS Format:
+
+Domain: $zone
+Key Tag: $keytag
+Algorithm: $algorithm ($(algorithm_name "$algorithm"))
+Digest Type: 2 (SHA-256)
+Digest: $digest
+
+DNSKEY Format:
+
+Domain: $zone
+Flag: 257 (KSK)
+Algorithm: $algorithm ($(algorithm_name "$algorithm"))
+Public Key: $pubkey
+
+EOF
+done
+
+if [ "$found" -eq 0 ]; then
+    echo "Error: Could not find key signing key (KSK) file for zone $zone in $keydir." >&2
+    exit 1
+fi
